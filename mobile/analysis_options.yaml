@@ -1,0 +1,16 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  errors:
+    prefer_const_constructors: warning
+    avoid_print: warning
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
+
+linter:
+  rules:
+    always_declare_return_types: true
+    sort_child_properties_last: true
+    use_super_parameters: true
