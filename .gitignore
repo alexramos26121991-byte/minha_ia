@@ -1,0 +1,42 @@
+# Ambiente e segredos
+.env
+.env.*
+!.env.example
+google-services.json
+GoogleService-Info.plist
+*.jks
+*.keystore
+*.p12
+*.p8
+service-account*.json
+
+# Flutter / Dart
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+coverage/
+*.symlink
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node / admin
+node_modules/
+.next/
+dist/
+npm-debug.log*
+
+# Sistemas
+.DS_Store
+Thumbs.db
+*.swp
