@@ -21,6 +21,8 @@ class User(Base):
     )
     fcm_token: Mapped[str | None] = mapped_column(String(512), nullable=True)
     status: Mapped[str] = mapped_column(String(32), default="active")
+    # "user" ou "admin". Necessário para autorizar o ajuste manual de créditos.
+    role: Mapped[str] = mapped_column(String(16), default="user", server_default="user")
     consent_version: Mapped[str | None] = mapped_column(String(32), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()

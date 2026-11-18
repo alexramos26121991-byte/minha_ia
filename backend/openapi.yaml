@@ -769,6 +769,9 @@ components:
         reason:
           type: string
           title: Reason
+        kind:
+          type: string
+          title: Kind
         balance_after:
           type: integer
           title: Balance After
@@ -781,6 +784,7 @@ components:
       - id
       - amount
       - reason
+      - kind
       - balance_after
       - created_at
       title: LedgerEntryOut

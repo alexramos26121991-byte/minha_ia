@@ -14,6 +14,7 @@ part 'ledger_entry_out.g.dart';
 /// * [id] 
 /// * [amount] 
 /// * [reason] 
+/// * [kind] 
 /// * [balanceAfter] 
 /// * [createdAt] 
 @BuiltValue()
@@ -26,6 +27,9 @@ abstract class LedgerEntryOut implements Built<LedgerEntryOut, LedgerEntryOutBui
 
   @BuiltValueField(wireName: r'reason')
   String get reason;
+
+  @BuiltValueField(wireName: r'kind')
+  String get kind;
 
   @BuiltValueField(wireName: r'balance_after')
   int get balanceAfter;
@@ -69,6 +73,11 @@ class _$LedgerEntryOutSerializer implements PrimitiveSerializer<LedgerEntryOut> 
     yield r'reason';
     yield serializers.serialize(
       object.reason,
+      specifiedType: const FullType(String),
+    );
+    yield r'kind';
+    yield serializers.serialize(
+      object.kind,
       specifiedType: const FullType(String),
     );
     yield r'balance_after';
@@ -124,6 +133,13 @@ class _$LedgerEntryOutSerializer implements PrimitiveSerializer<LedgerEntryOut> 
             specifiedType: const FullType(String),
           ) as String;
           result.reason = valueDes;
+          break;
+        case r'kind':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.kind = valueDes;
           break;
         case r'balance_after':
           final valueDes = serializers.deserialize(

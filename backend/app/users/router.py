@@ -1,27 +1,14 @@
 """Rotas de perfil do usuário (E2)."""
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.security import VerifiedIdentity, get_current_identity
+from app.core.deps import get_current_user as require_user
 from app.users.schemas import UserOut, UserUpdateIn
-from app.users.service import find_by_uid, to_out
+from app.users.service import to_out
 
 router = APIRouter(prefix="/users", tags=["users"])
-
-
-def _require_user(
-    identity: VerifiedIdentity = Depends(get_current_identity),
-    db: Session = Depends(get_db),
-):
-    user = find_by_uid(db, identity.uid)
-    if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Perfil não encontrado. Abra uma sessão antes de consultar o perfil.",
-        )
-    return user
 
 
 @router.get(
@@ -30,7 +17,7 @@ def _require_user(
     operation_id="getCurrentUser",
     summary="Retorna o perfil do usuário autenticado",
 )
-async def get_current_user(user=Depends(_require_user), db: Session = Depends(get_db)) -> UserOut:
+async def get_current_user(user=Depends(require_user), db: Session = Depends(get_db)) -> UserOut:
     return to_out(db, user)
 
 
@@ -42,7 +29,7 @@ async def get_current_user(user=Depends(_require_user), db: Session = Depends(ge
 )
 async def update_current_user(
     payload: UserUpdateIn,
-    user=Depends(_require_user),
+    user=Depends(require_user),
     db: Session = Depends(get_db),
 ) -> UserOut:
     if payload.fcm_token is not None:

@@ -9,6 +9,10 @@ from app.core.config import settings
 from app.core.database import Base
 
 # Importa os modelos para popular Base.metadata (autogenerate).
+import app.admin.model  # noqa: F401
+import app.credits.model  # noqa: F401
+import app.generation.model  # noqa: F401
+import app.payments.model  # noqa: F401
 import app.plans.model  # noqa: F401
 import app.users.model  # noqa: F401
 

@@ -31,6 +31,9 @@ class Settings(BaseSettings):
 
     # Feature flags (ADRs 0002/0004 — provisórios)
     credits_enforced: bool = True
+    # Reservas órfãs (sem commit/estorno) são estornadas após este prazo.
+    reconcile_stale_minutes: int = 30
+    reconcile_interval_seconds: int = 300
     image_generation_enabled: bool = True
     video_generation_enabled: bool = False
     audio_generation_enabled: bool = False

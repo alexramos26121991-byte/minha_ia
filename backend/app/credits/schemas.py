@@ -1,4 +1,4 @@
-"""Schemas de créditos (tabelas credit_accounts/credit_ledger na E3)."""
+"""Schemas de créditos — contrato E1c mantido, com ``kind`` para o histórico."""
 
 import uuid
 from datetime import datetime
@@ -20,5 +20,6 @@ class LedgerEntryOut(BaseModel):
     id: uuid.UUID
     amount: int
     reason: str
+    kind: str
     balance_after: int
     created_at: datetime

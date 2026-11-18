@@ -14,6 +14,8 @@ class _$LedgerEntryOut extends LedgerEntryOut {
   @override
   final String reason;
   @override
+  final String kind;
+  @override
   final int balanceAfter;
   @override
   final DateTime createdAt;
@@ -25,6 +27,7 @@ class _$LedgerEntryOut extends LedgerEntryOut {
       {required this.id,
       required this.amount,
       required this.reason,
+      required this.kind,
       required this.balanceAfter,
       required this.createdAt})
       : super._();
@@ -42,6 +45,7 @@ class _$LedgerEntryOut extends LedgerEntryOut {
         id == other.id &&
         amount == other.amount &&
         reason == other.reason &&
+        kind == other.kind &&
         balanceAfter == other.balanceAfter &&
         createdAt == other.createdAt;
   }
@@ -52,6 +56,7 @@ class _$LedgerEntryOut extends LedgerEntryOut {
     _$hash = $jc(_$hash, id.hashCode);
     _$hash = $jc(_$hash, amount.hashCode);
     _$hash = $jc(_$hash, reason.hashCode);
+    _$hash = $jc(_$hash, kind.hashCode);
     _$hash = $jc(_$hash, balanceAfter.hashCode);
     _$hash = $jc(_$hash, createdAt.hashCode);
     _$hash = $jf(_$hash);
@@ -64,6 +69,7 @@ class _$LedgerEntryOut extends LedgerEntryOut {
           ..add('id', id)
           ..add('amount', amount)
           ..add('reason', reason)
+          ..add('kind', kind)
           ..add('balanceAfter', balanceAfter)
           ..add('createdAt', createdAt))
         .toString();
@@ -86,6 +92,10 @@ class LedgerEntryOutBuilder
   String? get reason => _$this._reason;
   set reason(String? reason) => _$this._reason = reason;
 
+  String? _kind;
+  String? get kind => _$this._kind;
+  set kind(String? kind) => _$this._kind = kind;
+
   int? _balanceAfter;
   int? get balanceAfter => _$this._balanceAfter;
   set balanceAfter(int? balanceAfter) => _$this._balanceAfter = balanceAfter;
@@ -104,6 +114,7 @@ class LedgerEntryOutBuilder
       _id = $v.id;
       _amount = $v.amount;
       _reason = $v.reason;
+      _kind = $v.kind;
       _balanceAfter = $v.balanceAfter;
       _createdAt = $v.createdAt;
       _$v = null;
@@ -133,6 +144,8 @@ class LedgerEntryOutBuilder
               amount, r'LedgerEntryOut', 'amount'),
           reason: BuiltValueNullFieldError.checkNotNull(
               reason, r'LedgerEntryOut', 'reason'),
+          kind: BuiltValueNullFieldError.checkNotNull(
+              kind, r'LedgerEntryOut', 'kind'),
           balanceAfter: BuiltValueNullFieldError.checkNotNull(
               balanceAfter, r'LedgerEntryOut', 'balanceAfter'),
           createdAt: BuiltValueNullFieldError.checkNotNull(
