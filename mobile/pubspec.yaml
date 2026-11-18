@@ -17,12 +17,20 @@ dependencies:
   material_ui: ^1.11.1
   cupertino_icons: ^1.0.8
 
+  # Cliente Dart gerado a partir de backend/openapi.yaml (não editar à mão).
+  built_value: ^8.4.0
+  built_collection: ^5.1.1
+  one_of: ^1.5.0
+  one_of_serializer: ^1.5.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
   integration_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  build_runner: ^2.4.0
+  built_value_generator: ^8.4.0
 
 flutter:
   uses-material-design: true

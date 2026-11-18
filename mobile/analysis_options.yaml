@@ -8,6 +8,9 @@ analyzer:
     - build/**
     - android/**
     - ios/**
+    # Cliente Dart gerado por openapi-generator: é sobrescrito a cada
+    # regeneração do contrato, portanto não deve ser editado para satisfazer lints.
+    - lib/services/api/generated/**
 
 linter:
   rules:

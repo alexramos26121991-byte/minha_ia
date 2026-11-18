@@ -1,0 +1,990 @@
+openapi: 3.1.0
+info:
+  title: MINHA IA API
+  description: API da plataforma MINHA IA — SUA IMAGINAÇÃO, SEM LIMITES. Créditos são reservados/efetivados/estornados no
+    backend; o app nunca recebe chaves de provedores nem regras de crédito. Endpoints marcados como 501 já estão contratados
+    e são implementados nas etapas seguintes do plano de execução.
+  version: 0.1.0
+  license:
+    name: Uso interno — MINHA IA
+    identifier: LicenseRef-Proprietary
+paths:
+  /health:
+    get:
+      tags:
+      - system
+      summary: Verificação de saúde (liveness/readiness)
+      operationId: health
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthOut'
+        '400':
+          description: Requisição inválida.
+      security: []
+  /auth/session:
+    post:
+      tags:
+      - auth
+      summary: Abre uma sessão a partir do ID token do Firebase
+      description: Contrato definido na E1c; validação Firebase/upsert de usuário na E2.
+      operationId: createSession
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionOut'
+        '400':
+          description: Requisição inválida.
+      security:
+      - FirebaseBearer: []
+  /users/me:
+    get:
+      tags:
+      - users
+      summary: Retorna o perfil do usuário autenticado
+      operationId: getCurrentUser
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserOut'
+        '400':
+          description: Requisição inválida.
+      security:
+      - FirebaseBearer: []
+    patch:
+      tags:
+      - users
+      summary: Atualiza token FCM e versão do consentimento
+      operationId: updateCurrentUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdateIn'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - FirebaseBearer: []
+  /plans:
+    get:
+      tags:
+      - plans
+      summary: Lista os planos ativos (tela de planos do app)
+      description: Os preços são provisórios conforme ADR 0004.
+      operationId: listPlans
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/PlanOut'
+                type: array
+                title: Response Listplans
+        '400':
+          description: Requisição inválida.
+      security: []
+  /credits/balance:
+    get:
+      tags:
+      - credits
+      summary: Retorna saldo, reservado e disponível
+      operationId: getCreditBalance
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceOut'
+        '400':
+          description: Requisição inválida.
+      security:
+      - FirebaseBearer: []
+  /credits/ledger:
+    get:
+      tags:
+      - credits
+      summary: Lista o histórico append-only de créditos
+      operationId: listCreditLedger
+      security:
+      - FirebaseBearer: []
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 200
+          minimum: 1
+          default: 50
+          title: Limit
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+          title: Offset
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LedgerEntryOut'
+                title: Response Listcreditledger
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /generations/image:
+    post:
+      tags:
+      - generations
+      summary: Gera uma imagem (reserva 5+ créditos, commit/refund)
+      operationId: generateImage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImageGenerationIn'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerationOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - FirebaseBearer: []
+  /generations/video:
+    post:
+      tags:
+      - generations
+      summary: Enfileira geração de vídeo (202 + job)
+      operationId: generateVideo
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VideoGenerationIn'
+        required: true
+      responses:
+        '202':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerationOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - FirebaseBearer: []
+  /generations/animate-photo:
+    post:
+      tags:
+      - generations
+      summary: Enfileira animação de fotografia
+      operationId: animatePhoto
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnimatePhotoIn'
+        required: true
+      responses:
+        '202':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerationOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - FirebaseBearer: []
+  /generations:
+    get:
+      tags:
+      - generations
+      summary: Lista o histórico de gerações (galeria)
+      operationId: listGenerations
+      security:
+      - FirebaseBearer: []
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 200
+          minimum: 1
+          default: 50
+          title: Limit
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+          title: Offset
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GenerationOut'
+                title: Response Listgenerations
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /generations/{generation_id}:
+    get:
+      tags:
+      - generations
+      summary: Retorna uma geração pelo id
+      operationId: getGeneration
+      security:
+      - FirebaseBearer: []
+      parameters:
+      - name: generation_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Generation Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerationOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /payments/checkout:
+    post:
+      tags:
+      - payments
+      summary: Cria checkout hosted (cartão/Pix) — nunca expõe dados de cartão no app
+      operationId: createCheckout
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckoutIn'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - FirebaseBearer: []
+  /payments/webhook:
+    post:
+      tags:
+      - payments
+      summary: Recebe webhook assinado, deduplica e credita em uma transação
+      description: 'Público: validação por assinatura, não por token do app.'
+      operationId: handlePaymentWebhook
+      parameters:
+      - name: X-Signature
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Signature
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: string
+                title: Response Handlepaymentwebhook
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security: []
+  /payments:
+    get:
+      tags:
+      - payments
+      summary: Lista pagamentos do usuário
+      operationId: listPayments
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/PaymentOut'
+                type: array
+                title: Response Listpayments
+        '400':
+          description: Requisição inválida.
+      security:
+      - FirebaseBearer: []
+  /admin/users:
+    get:
+      tags:
+      - admin
+      summary: Lista usuários (somente admin)
+      operationId: adminListUsers
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/UserOut'
+                type: array
+                title: Response Adminlistusers
+        '400':
+          description: Requisição inválida.
+      security:
+      - FirebaseBearer: []
+  /admin/generations:
+    get:
+      tags:
+      - admin
+      summary: Lista gerações (somente admin)
+      operationId: adminListGenerations
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/GenerationOut'
+                type: array
+                title: Response Adminlistgenerations
+        '400':
+          description: Requisição inválida.
+      security:
+      - FirebaseBearer: []
+  /admin/payments:
+    get:
+      tags:
+      - admin
+      summary: Lista pagamentos (somente admin)
+      operationId: adminListPayments
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/PaymentOut'
+                type: array
+                title: Response Adminlistpayments
+        '400':
+          description: Requisição inválida.
+      security:
+      - FirebaseBearer: []
+  /admin/users/{user_id}/credits:
+    patch:
+      tags:
+      - admin
+      summary: Ajusta créditos manualmente (auditado)
+      operationId: adminAdjustCredits
+      security:
+      - FirebaseBearer: []
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: User Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreditAdjustmentIn'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /admin/costs:
+    get:
+      tags:
+      - admin
+      summary: Lista tabela mestre de custo (ADR 0003)
+      operationId: adminListCosts
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/CostConfigOut'
+                type: array
+                title: Response Adminlistcosts
+        '400':
+          description: Requisição inválida.
+      security:
+      - FirebaseBearer: []
+components:
+  schemas:
+    AnimatePhotoIn:
+      properties:
+        image_url:
+          type: string
+          maxLength: 2083
+          minLength: 1
+          format: uri
+          title: Image Url
+        motion:
+          anyOf:
+          - type: string
+            maxLength: 80
+          - type: 'null'
+          title: Motion
+        idempotency_key:
+          type: string
+          maxLength: 128
+          minLength: 8
+          title: Idempotency Key
+      type: object
+      required:
+      - image_url
+      - idempotency_key
+      title: AnimatePhotoIn
+    BalanceOut:
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          title: User Id
+        balance:
+          type: integer
+          title: Balance
+        reserved:
+          type: integer
+          title: Reserved
+          default: 0
+        available:
+          type: integer
+          title: Available
+      type: object
+      required:
+      - user_id
+      - balance
+      - available
+      title: BalanceOut
+    CheckoutIn:
+      properties:
+        plan_slug:
+          type: string
+          maxLength: 64
+          minLength: 1
+          title: Plan Slug
+        provider:
+          type: string
+          pattern: ^(stripe|mercadopago)$
+          title: Provider
+        success_url:
+          anyOf:
+          - type: string
+            maxLength: 2083
+            minLength: 1
+            format: uri
+          - type: 'null'
+          title: Success Url
+      type: object
+      required:
+      - plan_slug
+      - provider
+      title: CheckoutIn
+    CheckoutOut:
+      properties:
+        checkout_id:
+          type: string
+          title: Checkout Id
+        provider:
+          type: string
+          title: Provider
+        checkout_url:
+          type: string
+          maxLength: 2083
+          minLength: 1
+          format: uri
+          title: Checkout Url
+        expires_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Expires At
+      type: object
+      required:
+      - checkout_id
+      - provider
+      - checkout_url
+      title: CheckoutOut
+    CostConfigOut:
+      properties:
+        operation:
+          type: string
+          title: Operation
+        credits:
+          type: integer
+          title: Credits
+        enabled:
+          type: boolean
+          title: Enabled
+      type: object
+      required:
+      - operation
+      - credits
+      - enabled
+      title: CostConfigOut
+    CreditAdjustmentIn:
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          title: User Id
+        amount:
+          type: integer
+          title: Amount
+          description: Positivo credita; negativo debita.
+        reason:
+          type: string
+          maxLength: 200
+          minLength: 3
+          title: Reason
+      type: object
+      required:
+      - user_id
+      - amount
+      - reason
+      title: CreditAdjustmentIn
+    GenerationOut:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        user_id:
+          type: string
+          format: uuid
+          title: User Id
+        type:
+          type: string
+          title: Type
+        status:
+          type: string
+          title: Status
+        provider:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Provider
+        cost_credits:
+          type: integer
+          title: Cost Credits
+        storage_path:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Storage Path
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+      type: object
+      required:
+      - id
+      - user_id
+      - type
+      - status
+      - cost_credits
+      - created_at
+      title: GenerationOut
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    HealthOut:
+      properties:
+        status:
+          type: string
+          title: Status
+        app:
+          type: string
+          title: App
+        version:
+          type: string
+          title: Version
+        environment:
+          type: string
+          title: Environment
+      type: object
+      required:
+      - status
+      - app
+      - version
+      - environment
+      title: HealthOut
+    ImageGenerationIn:
+      properties:
+        prompt:
+          type: string
+          maxLength: 2000
+          minLength: 1
+          title: Prompt
+        style:
+          anyOf:
+          - type: string
+            maxLength: 80
+          - type: 'null'
+          title: Style
+        size:
+          type: string
+          pattern: ^\d{3,4}x\d{3,4}$
+          title: Size
+          default: 1024x1024
+        idempotency_key:
+          type: string
+          maxLength: 128
+          minLength: 8
+          title: Idempotency Key
+      type: object
+      required:
+      - prompt
+      - idempotency_key
+      title: ImageGenerationIn
+    LedgerEntryOut:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        amount:
+          type: integer
+          title: Amount
+        reason:
+          type: string
+          title: Reason
+        balance_after:
+          type: integer
+          title: Balance After
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+      type: object
+      required:
+      - id
+      - amount
+      - reason
+      - balance_after
+      - created_at
+      title: LedgerEntryOut
+    PaymentOut:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        provider:
+          type: string
+          title: Provider
+        external_id:
+          type: string
+          title: External Id
+        amount_brl:
+          type: number
+          title: Amount Brl
+        status:
+          type: string
+          title: Status
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+      type: object
+      required:
+      - id
+      - provider
+      - external_id
+      - amount_brl
+      - status
+      - created_at
+      title: PaymentOut
+    PlanOut:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        slug:
+          type: string
+          title: Slug
+        name:
+          type: string
+          title: Name
+        monthly_credits:
+          type: integer
+          title: Monthly Credits
+        price_brl:
+          type: number
+          title: Price Brl
+        recurrence:
+          type: string
+          title: Recurrence
+        is_active:
+          type: boolean
+          title: Is Active
+      type: object
+      required:
+      - id
+      - slug
+      - name
+      - monthly_credits
+      - price_brl
+      - recurrence
+      - is_active
+      title: PlanOut
+    SessionOut:
+      properties:
+        user_id:
+          type: string
+          title: User Id
+        is_new:
+          type: boolean
+          title: Is New
+        plan_slug:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Plan Slug
+      type: object
+      required:
+      - user_id
+      - is_new
+      title: SessionOut
+    UserOut:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        firebase_uid:
+          type: string
+          title: Firebase Uid
+        email:
+          type: string
+          title: Email
+        plan_slug:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Plan Slug
+        status:
+          type: string
+          title: Status
+        consent_version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Consent Version
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+      type: object
+      required:
+      - id
+      - firebase_uid
+      - email
+      - status
+      - created_at
+      title: UserOut
+    UserUpdateIn:
+      properties:
+        fcm_token:
+          anyOf:
+          - type: string
+            maxLength: 512
+          - type: 'null'
+          title: Fcm Token
+        consent_version:
+          anyOf:
+          - type: string
+            maxLength: 32
+          - type: 'null'
+          title: Consent Version
+      type: object
+      title: UserUpdateIn
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+    VideoGenerationIn:
+      properties:
+        prompt:
+          type: string
+          maxLength: 2000
+          minLength: 1
+          title: Prompt
+        duration_seconds:
+          type: integer
+          maximum: 30.0
+          minimum: 2.0
+          title: Duration Seconds
+          default: 5
+        resolution:
+          type: string
+          pattern: ^(480p|720p|1080p)$
+          title: Resolution
+          default: 720p
+        idempotency_key:
+          type: string
+          maxLength: 128
+          minLength: 8
+          title: Idempotency Key
+      type: object
+      required:
+      - prompt
+      - idempotency_key
+      title: VideoGenerationIn
+  securitySchemes:
+    FirebaseBearer:
+      type: http
+      description: 'ID token do Firebase no cabeçalho Authorization: Bearer <token>.'
+      scheme: bearer
+tags:
+- name: system
+  description: Saúde do serviço.
+- name: auth
+  description: Sessão via Firebase (E2).
+- name: users
+  description: Perfil do usuário (E2).
+- name: plans
+  description: Catálogo de planos semeados na E1c.
+- name: credits
+  description: Saldo e ledger append-only (E3).
+- name: generations
+  description: Imagem (E4), vídeo/animação (E5), áudio/avatar (E6).
+- name: payments
+  description: Checkout e webhooks (E7).
+- name: admin
+  description: Operação e auditoria (E8).
+servers:
+- url: /
+  description: Base configurada pelo cliente
