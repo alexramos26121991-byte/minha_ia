@@ -66,6 +66,21 @@ class Settings(BaseSettings):
     image_provider_timeout_seconds: float = 30.0
     image_gateway_timeout_seconds: float = 25.0
     image_provider_retries: int = 2
+
+    # Geração de vídeo (E5/D2). `auto` prefere fal.ai quando há chave; mock só
+    # em desenvolvimento. Webhook é preferencial, polling é o fallback.
+    video_provider: str = "auto"
+    fal_video_text_model: str = "fal-ai/kling-video/v3/pro/text-to-video"
+    fal_video_image_model: str = "fal-ai/kling-video/v3/pro/image-to-video"
+    fal_webhook_url: str = ""
+    fal_webhook_user_id: str = ""
+    fal_jwks_url: str = "https://rest.fal.ai/.well-known/jwks.json"
+    video_provider_timeout_seconds: float = 30.0
+    video_provider_retries: int = 2
+    video_max_duration_seconds: int = 30
+    webhook_signature_leeway_seconds: int = 300
+    jwks_cache_ttl_seconds: int = 3600
+
     media_root: str = str(_ROOT / "media")
     media_url_prefix: str = "/media"
 

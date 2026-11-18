@@ -11,7 +11,7 @@ import uuid
 from abc import ABC, abstractmethod
 from pathlib import Path, PurePosixPath
 
-_ALLOWED_EXTENSIONS = frozenset({"png", "jpg", "jpeg", "webp"})
+_ALLOWED_EXTENSIONS = frozenset({"png", "jpg", "jpeg", "webp", "mp4"})
 
 
 class MediaStorage(ABC):
@@ -61,7 +61,7 @@ class LocalMediaStorage(MediaStorage):
     ) -> str:
         ext = extension.lower().lstrip(".")
         if ext not in _ALLOWED_EXTENSIONS:
-            raise ValueError(f"Extensão de imagem não suportada: {extension!r}")
+            raise ValueError(f"Extensão de mídia não suportada: {extension!r}")
         relative = Path(str(user_id)) / f"{generation_id}.{ext}"
         destination = self.root / relative
         destination.parent.mkdir(parents=True, exist_ok=True)

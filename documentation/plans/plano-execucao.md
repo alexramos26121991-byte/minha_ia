@@ -48,7 +48,7 @@ Estas decisões **devem ser fechadas na E0**:
 | # | Decisão | Recomendação | Por quê |
 |---|---|---|---|
 | D1 | Provedor de imagens | **Confirmado: GPT Image via OpenAI** (`gpt-image-1`); fal.ai/Replicate como alternativas | Qualidade e estabilidade; abstração permite trocar |
-| D2 | Provedor de vídeo | Kling / Luma / Veo via fal.ai ou Replicate | Geração assíncrona, custo por segundo |
+| D2 | Provedor de vídeo | **Confirmado: fal.ai + Kling** (`fal-ai/kling-video/v3/pro/{text-to-video,image-to-video}`); Luma/Veio via fal.ai como alternativas | Geração assíncrona via Queue API, webhook assinado, custo por segundo |
 | D3 | Provedor de áudio | ElevenLabs (voz) + MusicGen/Lyria (música) | Separar por capacidade |
 | D4 | Lip-sync / avatares | Sync Labs ou Hedra — **flag desligada no início** | Não pode bloquear o MVP |
 | D5 | Pagamentos | Stripe + Mercado Pago/Pix | Pix é quase obrigatório no BR |
@@ -309,12 +309,12 @@ flutter test test/features/image/ test/features/gallery/
 
 ### E5 — Vídeo: Texto→vídeo, Imagem→vídeo, Animar foto
 
-- **Dependências:** E4 · **Modelo:** default · **Lane:** A
+- **Dependências:** E4 · **D2 (pré-entregue):** camada `VideoProvider`/`FalVideoProvider`/`MockVideoProvider`, `FalWebhookVerifier` (ED25519/JWKS) e `register_event()` idempotente já implementados e testados · **Modelo:** default · **Lane:** A
 
 **Tarefas**
 1. Fila Celery + Redis. `POST /generations/video` retorna **202 + job_id** imediatamente.
-2. `VideoProvider` abstraction: `text_to_video`, `image_to_video`, `animate_photo`; polling + webhook (webhook preferencial).
-3. **Validar assinatura do webhook do provedor** e registrar em `webhook_events` com chave única.
+2. ~~`VideoProvider` abstraction: `text_to_video`, `image_to_video`, `animate_photo`; polling + webhook.~~ **Feito na D2** (`submit()`/`status()`/`result()`, webhook preferencial, polling fallback). Falta ligar ao worker.
+3. ~~**Validar assinatura do webhook do provedor** e registrar em `webhook_events` com chave única.~~ **Feito na D2**; falta o handler HTTP que chama `FalWebhookVerifier.verify()` + `register_event()`.
 4. Worker: provedor → download → Cloud Storage → `generations` → `commit`. Retry com backoff; estorno após N tentativas.
 5. Parâmetros: modelo, duração (5s/10s), proporção (16:9, 9:16, 1:1), intensidade do movimento.
 6. **Upload seguro:** URL assinada gerada pelo backend; validar MIME e tamanho máximo no backend antes de aceitar.
