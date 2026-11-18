@@ -14,6 +14,8 @@ class _$UserOut extends UserOut {
   @override
   final String email;
   @override
+  final String? displayName;
+  @override
   final String? planSlug;
   @override
   final String status;
@@ -29,6 +31,7 @@ class _$UserOut extends UserOut {
       {required this.id,
       required this.firebaseUid,
       required this.email,
+      this.displayName,
       this.planSlug,
       required this.status,
       this.consentVersion,
@@ -48,6 +51,7 @@ class _$UserOut extends UserOut {
         id == other.id &&
         firebaseUid == other.firebaseUid &&
         email == other.email &&
+        displayName == other.displayName &&
         planSlug == other.planSlug &&
         status == other.status &&
         consentVersion == other.consentVersion &&
@@ -60,6 +64,7 @@ class _$UserOut extends UserOut {
     _$hash = $jc(_$hash, id.hashCode);
     _$hash = $jc(_$hash, firebaseUid.hashCode);
     _$hash = $jc(_$hash, email.hashCode);
+    _$hash = $jc(_$hash, displayName.hashCode);
     _$hash = $jc(_$hash, planSlug.hashCode);
     _$hash = $jc(_$hash, status.hashCode);
     _$hash = $jc(_$hash, consentVersion.hashCode);
@@ -74,6 +79,7 @@ class _$UserOut extends UserOut {
           ..add('id', id)
           ..add('firebaseUid', firebaseUid)
           ..add('email', email)
+          ..add('displayName', displayName)
           ..add('planSlug', planSlug)
           ..add('status', status)
           ..add('consentVersion', consentVersion)
@@ -96,6 +102,10 @@ class UserOutBuilder implements Builder<UserOut, UserOutBuilder> {
   String? _email;
   String? get email => _$this._email;
   set email(String? email) => _$this._email = email;
+
+  String? _displayName;
+  String? get displayName => _$this._displayName;
+  set displayName(String? displayName) => _$this._displayName = displayName;
 
   String? _planSlug;
   String? get planSlug => _$this._planSlug;
@@ -124,6 +134,7 @@ class UserOutBuilder implements Builder<UserOut, UserOutBuilder> {
       _id = $v.id;
       _firebaseUid = $v.firebaseUid;
       _email = $v.email;
+      _displayName = $v.displayName;
       _planSlug = $v.planSlug;
       _status = $v.status;
       _consentVersion = $v.consentVersion;
@@ -154,6 +165,7 @@ class UserOutBuilder implements Builder<UserOut, UserOutBuilder> {
               firebaseUid, r'UserOut', 'firebaseUid'),
           email:
               BuiltValueNullFieldError.checkNotNull(email, r'UserOut', 'email'),
+          displayName: displayName,
           planSlug: planSlug,
           status: BuiltValueNullFieldError.checkNotNull(
               status, r'UserOut', 'status'),

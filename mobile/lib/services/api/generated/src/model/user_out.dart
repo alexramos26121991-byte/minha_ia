@@ -14,6 +14,7 @@ part 'user_out.g.dart';
 /// * [id] 
 /// * [firebaseUid] 
 /// * [email] 
+/// * [displayName] 
 /// * [planSlug] 
 /// * [status] 
 /// * [consentVersion] 
@@ -28,6 +29,9 @@ abstract class UserOut implements Built<UserOut, UserOutBuilder> {
 
   @BuiltValueField(wireName: r'email')
   String get email;
+
+  @BuiltValueField(wireName: r'display_name')
+  String? get displayName;
 
   @BuiltValueField(wireName: r'plan_slug')
   String? get planSlug;
@@ -79,6 +83,13 @@ class _$UserOutSerializer implements PrimitiveSerializer<UserOut> {
       object.email,
       specifiedType: const FullType(String),
     );
+    if (object.displayName != null) {
+      yield r'display_name';
+      yield serializers.serialize(
+        object.displayName,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
     if (object.planSlug != null) {
       yield r'plan_slug';
       yield serializers.serialize(
@@ -146,6 +157,14 @@ class _$UserOutSerializer implements PrimitiveSerializer<UserOut> {
             specifiedType: const FullType(String),
           ) as String;
           result.email = valueDes;
+          break;
+        case r'display_name':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.displayName = valueDes;
           break;
         case r'plan_slug':
           final valueDes = serializers.deserialize(

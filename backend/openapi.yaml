@@ -30,8 +30,15 @@ paths:
       tags:
       - auth
       summary: Abre uma sessão a partir do ID token do Firebase
-      description: Contrato definido na E1c; validação Firebase/upsert de usuário na E2.
+      description: 'Verifica o ID token, cria o usuário no primeiro login e registra o fcm_token do dispositivo. Use Authorization:
+        Bearer <id-token>.'
       operationId: createSession
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionIn'
+        required: true
       responses:
         '200':
           description: Successful Response
@@ -39,8 +46,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SessionOut'
-        '400':
-          description: Requisição inválida.
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
       security:
       - FirebaseBearer: []
   /users/me:
@@ -63,7 +74,7 @@ paths:
     patch:
       tags:
       - users
-      summary: Atualiza token FCM e versão do consentimento
+      summary: Atualiza token FCM, versão do consentimento e nome de exibição
       operationId: updateCurrentUser
       requestBody:
         content:
@@ -838,6 +849,34 @@ components:
       - recurrence
       - is_active
       title: PlanOut
+    SessionIn:
+      properties:
+        fcm_token:
+          anyOf:
+          - type: string
+            maxLength: 512
+          - type: 'null'
+          title: Fcm Token
+        consent_version:
+          anyOf:
+          - type: string
+            maxLength: 32
+          - type: 'null'
+          title: Consent Version
+        display_name:
+          anyOf:
+          - type: string
+            maxLength: 120
+          - type: 'null'
+          title: Display Name
+      type: object
+      title: SessionIn
+      description: 'Dados do dispositivo enviados no abertura de sessão.
+
+
+        ``fcm_token`` é registrado já no login para que as notificações da E5
+
+        possam ser enviadas sem uma segunda chamada do app.'
     SessionOut:
       properties:
         user_id:
@@ -868,6 +907,11 @@ components:
         email:
           type: string
           title: Email
+        display_name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Display Name
         plan_slug:
           anyOf:
           - type: string
@@ -907,6 +951,12 @@ components:
             maxLength: 32
           - type: 'null'
           title: Consent Version
+        display_name:
+          anyOf:
+          - type: string
+            maxLength: 120
+          - type: 'null'
+          title: Display Name
       type: object
       title: UserUpdateIn
     ValidationError:

@@ -99,7 +99,7 @@ class UsersApi {
     );
   }
 
-  /// Atualiza token FCM e versão do consentimento
+  /// Atualiza token FCM, versão do consentimento e nome de exibição
   /// 
   ///
   /// Parameters:

@@ -8,6 +8,8 @@ import 'package:built_value/json_object.dart';
 import 'package:built_value/serializer.dart';
 import 'package:dio/dio.dart';
 
+import 'package:minha_ia/services/api/generated/src/model/http_validation_error.dart';
+import 'package:minha_ia/services/api/generated/src/model/session_in.dart';
 import 'package:minha_ia/services/api/generated/src/model/session_out.dart';
 
 class AuthApi {
@@ -19,9 +21,10 @@ class AuthApi {
   const AuthApi(this._dio, this._serializers);
 
   /// Abre uma sessão a partir do ID token do Firebase
-  /// Contrato definido na E1c; validação Firebase/upsert de usuário na E2.
+  /// Verifica o ID token, cria o usuário no primeiro login e registra o fcm_token do dispositivo. Use Authorization: Bearer &lt;id-token&gt;.
   ///
   /// Parameters:
+  /// * [sessionIn] 
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -32,6 +35,7 @@ class AuthApi {
   /// Returns a [Future] containing a [Response] with a [SessionOut] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<SessionOut>> createSession({ 
+    required SessionIn sessionIn,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -55,11 +59,31 @@ class AuthApi {
         ],
         ...?extra,
       },
+      contentType: 'application/json',
       validateStatus: validateStatus,
     );
 
+    dynamic _bodyData;
+
+    try {
+      const _type = FullType(SessionIn);
+      _bodyData = _serializers.serialize(sessionIn, specifiedType: _type);
+
+    } catch(error, stackTrace) {
+      throw DioException(
+         requestOptions: _options.compose(
+          _dio.options,
+          _path,
+        ),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
     final _response = await _dio.request<Object>(
       _path,
+      data: _bodyData,
       options: _options,
       cancelToken: cancelToken,
       onSendProgress: onSendProgress,

@@ -13,6 +13,7 @@ part 'user_update_in.g.dart';
 /// Properties:
 /// * [fcmToken] 
 /// * [consentVersion] 
+/// * [displayName] 
 @BuiltValue()
 abstract class UserUpdateIn implements Built<UserUpdateIn, UserUpdateInBuilder> {
   @BuiltValueField(wireName: r'fcm_token')
@@ -20,6 +21,9 @@ abstract class UserUpdateIn implements Built<UserUpdateIn, UserUpdateInBuilder> 
 
   @BuiltValueField(wireName: r'consent_version')
   String? get consentVersion;
+
+  @BuiltValueField(wireName: r'display_name')
+  String? get displayName;
 
   UserUpdateIn._();
 
@@ -55,6 +59,13 @@ class _$UserUpdateInSerializer implements PrimitiveSerializer<UserUpdateIn> {
       yield r'consent_version';
       yield serializers.serialize(
         object.consentVersion,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
+    if (object.displayName != null) {
+      yield r'display_name';
+      yield serializers.serialize(
+        object.displayName,
         specifiedType: const FullType.nullable(String),
       );
     }
@@ -96,6 +107,14 @@ class _$UserUpdateInSerializer implements PrimitiveSerializer<UserUpdateIn> {
           ) as String?;
           if (valueDes == null) continue;
           result.consentVersion = valueDes;
+          break;
+        case r'display_name':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.displayName = valueDes;
           break;
         default:
           unhandled.add(key);

@@ -25,6 +25,10 @@ class Settings(BaseSettings):
     postgres_password: str = "trocar"
     redis_url: str = "redis://localhost:6379/0"
 
+    # Autenticação (E2). "firebase" exige as credenciais abaixo; "dev" permite
+    # fluxo local sem Firebase e é recusado quando app_env=production.
+    auth_provider: str = "dev"
+
     # Feature flags (ADRs 0002/0004 — provisórios)
     credits_enforced: bool = True
     image_generation_enabled: bool = True

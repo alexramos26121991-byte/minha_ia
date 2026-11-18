@@ -15,6 +15,7 @@ class User(Base):
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     firebase_uid: Mapped[str] = mapped_column(String(128), unique=True, index=True)
     email: Mapped[str] = mapped_column(String(320), unique=True, index=True)
+    display_name: Mapped[str | None] = mapped_column(String(120), nullable=True)
     plan_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("plans.id", ondelete="SET NULL"), nullable=True
     )

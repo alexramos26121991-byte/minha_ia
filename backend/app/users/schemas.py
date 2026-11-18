@@ -12,6 +12,7 @@ class UserOut(BaseModel):
     id: uuid.UUID
     firebase_uid: str
     email: str
+    display_name: str | None = None
     plan_slug: str | None = None
     status: str
     consent_version: str | None = None
@@ -21,3 +22,4 @@ class UserOut(BaseModel):
 class UserUpdateIn(BaseModel):
     fcm_token: str | None = Field(default=None, max_length=512)
     consent_version: str | None = Field(default=None, max_length=32)
+    display_name: str | None = Field(default=None, max_length=120)

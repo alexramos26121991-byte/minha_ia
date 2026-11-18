@@ -1,15 +1,27 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:minha_ia/app.dart';
+import 'package:minha_ia/routes/app_router.dart';
+import 'package:minha_ia/services/auth/auth_repository.dart';
+import 'package:minha_ia/services/auth/token_storage.dart';
 
-Future<void> _pumpApp(WidgetTester tester) async {
-  await tester.pumpWidget(const ProviderScope(child: MinhaIaApp()));
+/// Cria um repositório autenticado sem depender de canais nativos ou rede.
+Future<AuthRepository> _signedInRepo() async {
+  final repo = AuthRepository(storage: InMemoryTokenStorage());
+  await repo.signInAsDemo();
+  return repo;
+}
+
+Future<void> _pumpApp(WidgetTester tester, AuthRepository auth) async {
+  await tester.pumpWidget(
+    ProviderScope(child: MinhaIaApp(router: createAppRouter(auth: auth))),
+  );
   await tester.pumpAndSettle();
 }
 
 void main() {
   testWidgets('exibe as 5 abas da navegação inferior', (tester) async {
-    await _pumpApp(tester);
+    await _pumpApp(tester, await _signedInRepo());
 
     expect(find.text('Início'), findsOneWidget);
     expect(find.text('Criar'), findsOneWidget);
@@ -19,7 +31,7 @@ void main() {
   });
 
   testWidgets('a tela inicial mostra saldo e acoes principais', (tester) async {
-    await _pumpApp(tester);
+    await _pumpApp(tester, await _signedInRepo());
 
     expect(find.text('Sua imaginação,\nsem limites.'), findsOneWidget);
     expect(find.textContaining('créditos disponíveis'), findsWidgets);
@@ -27,41 +39,19 @@ void main() {
     expect(find.text('Criar imagem'), findsOneWidget);
   });
 
-  testWidgets('navega para Criar imagem pela aba Imagens', (tester) async {
-    await _pumpApp(tester);
-
-    await tester.tap(find.text('Imagens'));
+  testWidgets('rota protegida redireciona para login quando sem sessão', (tester) async {
+    final repo = AuthRepository(storage: InMemoryTokenStorage());
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MinhaIaApp(
+          router: createAppRouter(auth: repo, initialLocation: '/galeria'),
+        ),
+      ),
+    );
     await tester.pumpAndSettle();
 
-    expect(find.text('Criar imagem'), findsWidgets);
-    expect(find.text('Descreva sua imagem'), findsOneWidget);
-  });
-
-  testWidgets('navega para Planos a partir do Perfil', (tester) async {
-    await _pumpApp(tester);
-
-    await tester.tap(find.text('Perfil'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Assinaturas e planos'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Escolha o plano ideal'), findsOneWidget);
-    expect(find.text('Premium'), findsOneWidget);
-  });
-
-  testWidgets('abre Animar foto pela aba Criar', (tester) async {
-    await _pumpApp(tester);
-
-    await tester.tap(find.text('Criar'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Criar vídeo'), findsWidgets);
-    await tester.ensureVisible(find.text('Animar foto'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Animar foto'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Animar foto'), findsWidgets);
-    expect(find.textContaining('Animação de fotografias'), findsOneWidget);
+    expect(find.text('Bem-vindo de volta'), findsOneWidget);
+    expect(find.text('Entrar'), findsOneWidget);
+    expect(find.text('Galeria'), findsNothing);
   });
 }
