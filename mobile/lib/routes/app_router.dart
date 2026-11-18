@@ -14,6 +14,8 @@ import '../screens/video/animate_photo_screen.dart';
 import '../screens/video/video_screen.dart';
 import '../services/auth/auth_locator.dart';
 import '../services/auth/auth_repository.dart';
+import '../services/generation/generation_controller.dart';
+import '../services/generation/generation_locator.dart';
 import '../widgets/main_shell.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -33,12 +35,15 @@ bool _isPublic(String location) {
 /// Roteador principal. Cada aba tem sua própria pilha de navegação,
 /// preservando o estado ao alternar entre elas.
 ///
-/// [auth] é injetável para que os testes possam simular sessão sem persistência.
+/// [auth] e [generation] são injetáveis para que os testes possam simular
+/// sessão e dados sem persistência nem rede.
 GoRouter createAppRouter({
   AuthRepository? auth,
+  GenerationController? generation,
   String initialLocation = '/',
 }) {
   final authRepositoryForRouter = auth ?? authRepository;
+  final generationForRouter = generation ?? generationController;
 
   String? redirect(BuildContext context, GoRouterState state) {
     final location = state.uri.toString();
@@ -96,7 +101,7 @@ GoRouter createAppRouter({
               GoRoute(
                 path: '/',
                 name: 'home',
-                builder: (context, state) => const HomeScreen(),
+                builder: (context, state) => HomeScreen(controller: generationForRouter),
               ),
             ],
           ),
@@ -130,7 +135,7 @@ GoRouter createAppRouter({
               GoRoute(
                 path: '/imagens',
                 name: 'images',
-                builder: (context, state) => const ImageScreen(),
+                builder: (context, state) => ImageScreen(controller: generationForRouter),
                 routes: [
                   GoRoute(
                     path: 'efeitos',
@@ -148,7 +153,7 @@ GoRouter createAppRouter({
               GoRoute(
                 path: '/galeria',
                 name: 'gallery',
-                builder: (context, state) => const GalleryScreen(),
+                builder: (context, state) => GalleryScreen(controller: generationForRouter),
               ),
             ],
           ),
@@ -160,7 +165,10 @@ GoRouter createAppRouter({
                 path: '/perfil',
                 name: 'profile',
                 builder: (context, state) =>
-                    ProfileScreen(auth: authRepositoryForRouter),
+                    ProfileScreen(
+                      auth: authRepositoryForRouter,
+                      controller: generationForRouter,
+                    ),
                 routes: [
                   GoRoute(
                     path: 'planos',

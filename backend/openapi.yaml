@@ -176,6 +176,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /credits/costs:
+    get:
+      tags:
+      - credits
+      summary: Custos de geração por operação (somente leitura)
+      description: 'Expõe a tabela mestre de custos ao app, sem permitir alteração.
+
+
+        O cliente precisa do valor antes de confirmar a geração; buscá-lo do
+
+        backend evita que o preço exibido diverge do valor debitado.'
+      operationId: listCreditCosts
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/CostConfigOut'
+                type: array
+                title: Response Listcreditcosts
+        '400':
+          description: Requisição inválida.
+      security:
+      - FirebaseBearer: []
   /generations/image:
     post:
       tags:

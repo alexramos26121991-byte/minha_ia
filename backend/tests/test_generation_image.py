@@ -326,6 +326,19 @@ def test_list_get_and_delete_gallery(ctx):
     assert _balance(Session, ana_id) == before_delete  # delete não estorna
 
 
+def test_costs_endpoint_exposes_backend_prices(ctx):
+    client, *_ = ctx
+
+    response = client.get("/credits/costs", headers=AUTH)
+
+    assert response.status_code == 200, response.text
+    costs = {item["operation"]: item for item in response.json()}
+    assert costs["image"]["credits"] == 10
+    assert costs["image"]["enabled"] is True
+    assert costs["video"]["credits"] == 50
+    assert costs["animate_photo"]["credits"] == 20
+
+
 def test_video_still_contracted_but_not_implemented(ctx):
     client, *_ = ctx
 

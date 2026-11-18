@@ -4,6 +4,9 @@ import 'package:minha_ia/app.dart';
 import 'package:minha_ia/routes/app_router.dart';
 import 'package:minha_ia/services/auth/auth_repository.dart';
 import 'package:minha_ia/services/auth/token_storage.dart';
+import 'package:minha_ia/services/generation/generation_controller.dart';
+
+import 'features/generation/fakes.dart';
 
 /// Cria um repositório autenticado sem depender de canais nativos ou rede.
 Future<AuthRepository> _signedInRepo() async {
@@ -13,8 +16,16 @@ Future<AuthRepository> _signedInRepo() async {
 }
 
 Future<void> _pumpApp(WidgetTester tester, AuthRepository auth) async {
+  final generation = GenerationController(
+    credits: FakeCreditSource(),
+    generations: FakeGenerationSource(),
+  );
   await tester.pumpWidget(
-    ProviderScope(child: MinhaIaApp(router: createAppRouter(auth: auth))),
+    ProviderScope(
+      child: MinhaIaApp(
+        router: createAppRouter(auth: auth, generation: generation),
+      ),
+    ),
   );
   await tester.pumpAndSettle();
 }
