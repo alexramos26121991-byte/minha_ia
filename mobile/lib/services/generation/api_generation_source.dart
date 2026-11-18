@@ -1,11 +1,15 @@
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 
 import '../api/api_client.dart';
+import '../api/generated/src/model/animate_photo_in.dart';
 import '../api/generated/src/model/cost_config_out.dart';
 import '../api/generated/src/model/generation_out.dart';
 import '../api/generated/src/model/image_generation_in.dart';
+import '../api/generated/src/model/upload_out.dart';
+import '../api/generated/src/model/video_generation_in.dart';
 import '../auth/auth_locator.dart';
 import 'generation_models.dart';
 import 'generation_sources.dart';
@@ -96,6 +100,94 @@ class ApiGenerationSource implements CreditSource, GenerationSource {
   }
 
   @override
+  Future<GenerationItem> generateVideo({
+    required String prompt,
+    int? durationSeconds,
+    String? resolution,
+    String? idempotencyKey,
+  }) async {
+    final key = idempotencyKey ?? _newKey();
+    try {
+      final response = await _api.generations.generateVideo(
+        videoGenerationIn: VideoGenerationIn((builder) => builder
+          ..prompt = prompt
+          ..durationSeconds = durationSeconds
+          ..resolution = resolution
+          ..idempotencyKey = key),
+        headers: _headers,
+      );
+      final data = response.data;
+      if (data == null) throw GenerationApiFailure(message: 'Resposta inválida do servidor.');
+      return _map(data);
+    } on DioException catch (error) {
+      throw _translate(error);
+    }
+  }
+
+  @override
+  Future<GenerationItem> animatePhoto({
+    required String imageUrl,
+    String? motion,
+    String? idempotencyKey,
+  }) async {
+    final key = idempotencyKey ?? _newKey();
+    try {
+      final response = await _api.generations.animatePhoto(
+        animatePhotoIn: AnimatePhotoIn((builder) => builder
+          ..imageUrl = imageUrl
+          ..motion = motion
+          ..idempotencyKey = key),
+        headers: _headers,
+      );
+      final data = response.data;
+      if (data == null) throw GenerationApiFailure(message: 'Resposta inválida do servidor.');
+      return _map(data);
+    } on DioException catch (error) {
+      throw _translate(error);
+    }
+  }
+
+  @override
+  Future<GenerationItem> getGeneration(String id) async {
+    try {
+      final response = await _api.generations.getGeneration(
+        generationId: id,
+        headers: _headers,
+      );
+      final data = response.data;
+      if (data == null) throw GenerationApiFailure(message: 'Resposta inválida do servidor.');
+      return _map(data);
+    } on DioException catch (error) {
+      throw _translate(error);
+    }
+  }
+
+  @override
+  Future<String> uploadImage(
+    Uint8List bytes, {
+    required String fileName,
+    required String mimeType,
+  }) async {
+    try {
+      final response = await _api.generations.uploadGenerationImage(
+        file: MultipartFile.fromBytes(
+          bytes,
+          filename: fileName,
+          contentType: DioMediaType.parse(mimeType),
+        ),
+        headers: _headers,
+      );
+      final data = response.data;
+      if (data is! UploadOut) {
+        throw GenerationApiFailure(message: 'Resposta inválida do servidor.');
+      }
+      return _absoluteUrl(data.imageUrl);
+    } on DioException catch (error) {
+      throw _translate(error);
+    }
+  }
+
+  @override
   Future<List<GenerationItem>> listGenerations({
     required GenerationFilter filter,
     int limit = 50,
@@ -139,6 +231,7 @@ class ApiGenerationSource implements CreditSource, GenerationSource {
       prompt: item.prompt,
       mediaUrl: rawUrl == null ? null : _absoluteUrl(rawUrl),
       errorMessage: item.errorMessage,
+      progress: item.progress ?? 0,
     );
   }
 

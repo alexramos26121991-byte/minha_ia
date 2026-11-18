@@ -11,17 +11,18 @@ part 'generation_out.g.dart';
 /// GenerationOut
 ///
 /// Properties:
-/// * [id] 
-/// * [userId] 
-/// * [type] 
-/// * [status] 
-/// * [provider] 
-/// * [costCredits] 
-/// * [storagePath] 
-/// * [createdAt] 
-/// * [mediaUrl] 
-/// * [prompt] 
-/// * [errorMessage] 
+/// * [id]
+/// * [userId]
+/// * [type]
+/// * [status]
+/// * [provider]
+/// * [costCredits]
+/// * [storagePath]
+/// * [createdAt]
+/// * [mediaUrl]
+/// * [prompt]
+/// * [errorMessage]
+/// * [progress]
 @BuiltValue()
 abstract class GenerationOut implements Built<GenerationOut, GenerationOutBuilder> {
   @BuiltValueField(wireName: r'id')
@@ -57,12 +58,16 @@ abstract class GenerationOut implements Built<GenerationOut, GenerationOutBuilde
   @BuiltValueField(wireName: r'error_message')
   String? get errorMessage;
 
+  @BuiltValueField(wireName: r'progress')
+  int? get progress;
+
   GenerationOut._();
 
   factory GenerationOut([void updates(GenerationOutBuilder b)]) = _$GenerationOut;
 
   @BuiltValueHook(initializeBuilder: true)
-  static void _defaults(GenerationOutBuilder b) => b;
+  static void _defaults(GenerationOutBuilder b) => b
+      ..progress = 0;
 
   @BuiltValueSerializer(custom: true)
   static Serializer<GenerationOut> get serializer => _$GenerationOutSerializer();
@@ -143,6 +148,13 @@ class _$GenerationOutSerializer implements PrimitiveSerializer<GenerationOut> {
       yield serializers.serialize(
         object.errorMessage,
         specifiedType: const FullType.nullable(String),
+      );
+    }
+    if (object.progress != null) {
+      yield r'progress';
+      yield serializers.serialize(
+        object.progress,
+        specifiedType: const FullType(int),
       );
     }
   }
@@ -249,6 +261,14 @@ class _$GenerationOutSerializer implements PrimitiveSerializer<GenerationOut> {
           ) as String?;
           if (valueDes == null) continue;
           result.errorMessage = valueDes;
+          break;
+        case r'progress':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(int),
+          ) as int?;
+          if (valueDes == null) continue;
+          result.progress = valueDes;
           break;
         default:
           unhandled.add(key);

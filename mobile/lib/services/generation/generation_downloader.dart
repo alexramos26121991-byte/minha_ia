@@ -20,8 +20,9 @@ class GenerationDownloader {
 
   Future<String> download(GenerationItem item) async {
     final url = item.mediaUrl;
+    final noun = item.isVideo ? 'vídeo' : 'imagem';
     if (url == null || url.isEmpty) {
-      throw const GenerationDownloadFailure('Esta imagem ainda não pode ser baixada.');
+      throw GenerationDownloadFailure('Este $noun ainda não pode ser baixado.');
     }
 
     final dio = _dio ?? Dio();
@@ -33,8 +34,8 @@ class GenerationDownloader {
       );
       bytes = response.data ?? const <int>[];
     } on DioException catch (_) {
-      throw const GenerationDownloadFailure(
-        'Não foi possível baixar a imagem. Verifique sua conexão.',
+      throw GenerationDownloadFailure(
+        'Não foi possível baixar o $noun. Verifique sua conexão.',
       );
     }
 
@@ -46,12 +47,15 @@ class GenerationDownloader {
       final directory = _directory != null
           ? await _directory()
           : await getApplicationDocumentsDirectory();
-      final file = File('${directory.path}${Platform.pathSeparator}${item.id}.png');
+      final extension = item.isVideo ? 'mp4' : 'png';
+      final file = File(
+        '${directory.path}${Platform.pathSeparator}${item.id}.$extension',
+      );
       await file.writeAsBytes(bytes, flush: true);
       return file.path;
     } on FileSystemException catch (_) {
-      throw const GenerationDownloadFailure(
-        'Não foi possível salvar a imagem no dispositivo.',
+      throw GenerationDownloadFailure(
+        'Não foi possível salvar o $noun no dispositivo.',
       );
     }
   }

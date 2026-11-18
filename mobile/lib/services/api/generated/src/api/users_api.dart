@@ -21,7 +21,7 @@ class UsersApi {
   const UsersApi(this._dio, this._serializers);
 
   /// Retorna o perfil do usuário autenticado
-  /// 
+  ///
   ///
   /// Parameters:
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -33,7 +33,7 @@ class UsersApi {
   ///
   /// Returns a [Future] containing a [Response] with a [UserOut] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<UserOut>> getCurrentUser({ 
+  Future<Response<UserOut>> getCurrentUser({
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -100,10 +100,10 @@ class UsersApi {
   }
 
   /// Atualiza token FCM, versão do consentimento e nome de exibição
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [userUpdateIn] 
+  /// * [userUpdateIn]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -113,7 +113,7 @@ class UsersApi {
   ///
   /// Returns a [Future] containing a [Response] with a [UserOut] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<UserOut>> updateCurrentUser({ 
+  Future<Response<UserOut>> updateCurrentUser({
     required UserUpdateIn userUpdateIn,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,

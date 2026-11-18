@@ -11,9 +11,9 @@ part 'session_in.g.dart';
 /// Dados do dispositivo enviados no abertura de sessão.  ``fcm_token`` é registrado já no login para que as notificações da E5 possam ser enviadas sem uma segunda chamada do app.
 ///
 /// Properties:
-/// * [fcmToken] 
-/// * [consentVersion] 
-/// * [displayName] 
+/// * [fcmToken]
+/// * [consentVersion]
+/// * [displayName]
 @BuiltValue()
 abstract class SessionIn implements Built<SessionIn, SessionInBuilder> {
   @BuiltValueField(wireName: r'fcm_token')

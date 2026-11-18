@@ -11,12 +11,12 @@ part 'ledger_entry_out.g.dart';
 /// LedgerEntryOut
 ///
 /// Properties:
-/// * [id] 
-/// * [amount] 
-/// * [reason] 
-/// * [kind] 
-/// * [balanceAfter] 
-/// * [createdAt] 
+/// * [id]
+/// * [amount]
+/// * [reason]
+/// * [kind]
+/// * [balanceAfter]
+/// * [createdAt]
 @BuiltValue()
 abstract class LedgerEntryOut implements Built<LedgerEntryOut, LedgerEntryOutBuilder> {
   @BuiltValueField(wireName: r'id')

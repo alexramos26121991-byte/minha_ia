@@ -11,12 +11,12 @@ part 'payment_out.g.dart';
 /// PaymentOut
 ///
 /// Properties:
-/// * [id] 
-/// * [provider] 
-/// * [externalId] 
-/// * [amountBrl] 
-/// * [status] 
-/// * [createdAt] 
+/// * [id]
+/// * [provider]
+/// * [externalId]
+/// * [amountBrl]
+/// * [status]
+/// * [createdAt]
 @BuiltValue()
 abstract class PaymentOut implements Built<PaymentOut, PaymentOutBuilder> {
   @BuiltValueField(wireName: r'id')

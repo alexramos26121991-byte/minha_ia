@@ -11,9 +11,9 @@ part 'cost_config_out.g.dart';
 /// CostConfigOut
 ///
 /// Properties:
-/// * [operation] 
-/// * [credits] 
-/// * [enabled] 
+/// * [operation]
+/// * [credits]
+/// * [enabled]
 @BuiltValue()
 abstract class CostConfigOut implements Built<CostConfigOut, CostConfigOutBuilder> {
   @BuiltValueField(wireName: r'operation')

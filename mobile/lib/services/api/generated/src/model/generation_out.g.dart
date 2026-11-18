@@ -29,6 +29,8 @@ class _$GenerationOut extends GenerationOut {
   final String? prompt;
   @override
   final String? errorMessage;
+  @override
+  final int? progress;
 
   factory _$GenerationOut([void Function(GenerationOutBuilder)? updates]) =>
       (GenerationOutBuilder()..update(updates))._build();
@@ -44,7 +46,8 @@ class _$GenerationOut extends GenerationOut {
       required this.createdAt,
       this.mediaUrl,
       this.prompt,
-      this.errorMessage})
+      this.errorMessage,
+      this.progress})
       : super._();
   @override
   GenerationOut rebuild(void Function(GenerationOutBuilder) updates) =>
@@ -67,7 +70,8 @@ class _$GenerationOut extends GenerationOut {
         createdAt == other.createdAt &&
         mediaUrl == other.mediaUrl &&
         prompt == other.prompt &&
-        errorMessage == other.errorMessage;
+        errorMessage == other.errorMessage &&
+        progress == other.progress;
   }
 
   @override
@@ -84,6 +88,7 @@ class _$GenerationOut extends GenerationOut {
     _$hash = $jc(_$hash, mediaUrl.hashCode);
     _$hash = $jc(_$hash, prompt.hashCode);
     _$hash = $jc(_$hash, errorMessage.hashCode);
+    _$hash = $jc(_$hash, progress.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -101,7 +106,8 @@ class _$GenerationOut extends GenerationOut {
           ..add('createdAt', createdAt)
           ..add('mediaUrl', mediaUrl)
           ..add('prompt', prompt)
-          ..add('errorMessage', errorMessage))
+          ..add('errorMessage', errorMessage)
+          ..add('progress', progress))
         .toString();
   }
 }
@@ -154,6 +160,10 @@ class GenerationOutBuilder
   String? get errorMessage => _$this._errorMessage;
   set errorMessage(String? errorMessage) => _$this._errorMessage = errorMessage;
 
+  int? _progress;
+  int? get progress => _$this._progress;
+  set progress(int? progress) => _$this._progress = progress;
+
   GenerationOutBuilder() {
     GenerationOut._defaults(this);
   }
@@ -172,6 +182,7 @@ class GenerationOutBuilder
       _mediaUrl = $v.mediaUrl;
       _prompt = $v.prompt;
       _errorMessage = $v.errorMessage;
+      _progress = $v.progress;
       _$v = null;
     }
     return this;
@@ -209,6 +220,7 @@ class GenerationOutBuilder
           mediaUrl: mediaUrl,
           prompt: prompt,
           errorMessage: errorMessage,
+          progress: progress,
         );
     replace(_$result);
     return _$result;

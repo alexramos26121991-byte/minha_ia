@@ -17,6 +17,7 @@ from app.core.config import settings
 from app.core.schemas import HealthOut
 from app.credits.router import router as credits_router
 from app.generation.router import router as generation_router
+from app.generation.webhook_router import router as generation_webhook_router
 from app.payments.router import router as payments_router
 from app.plans.router import router as plans_router
 from app.users.router import router as users_router
@@ -67,6 +68,8 @@ app.include_router(users_router)
 app.include_router(plans_router)
 app.include_router(credits_router)
 app.include_router(generation_router)
+# Público por assinatura ED25519; fora do OpenAPI (contrato do provedor).
+app.include_router(generation_webhook_router)
 app.include_router(payments_router)
 app.include_router(admin_router)
 

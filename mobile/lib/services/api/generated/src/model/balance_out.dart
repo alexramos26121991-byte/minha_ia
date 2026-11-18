@@ -11,10 +11,10 @@ part 'balance_out.g.dart';
 /// BalanceOut
 ///
 /// Properties:
-/// * [userId] 
-/// * [balance] 
-/// * [reserved] 
-/// * [available] 
+/// * [userId]
+/// * [balance]
+/// * [reserved]
+/// * [available]
 @BuiltValue()
 abstract class BalanceOut implements Built<BalanceOut, BalanceOutBuilder> {
   @BuiltValueField(wireName: r'user_id')

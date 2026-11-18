@@ -11,9 +11,9 @@ part 'animate_photo_in.g.dart';
 /// AnimatePhotoIn
 ///
 /// Properties:
-/// * [imageUrl] 
-/// * [motion] 
-/// * [idempotencyKey] 
+/// * [imageUrl]
+/// * [motion]
+/// * [idempotencyKey]
 @BuiltValue()
 abstract class AnimatePhotoIn implements Built<AnimatePhotoIn, AnimatePhotoInBuilder> {
   @BuiltValueField(wireName: r'image_url')

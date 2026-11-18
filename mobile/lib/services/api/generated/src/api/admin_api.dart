@@ -27,11 +27,11 @@ class AdminApi {
   const AdminApi(this._dio, this._serializers);
 
   /// Ajusta créditos manualmente (auditado)
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [userId] 
-  /// * [creditAdjustmentIn] 
+  /// * [userId]
+  /// * [creditAdjustmentIn]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -41,7 +41,7 @@ class AdminApi {
   ///
   /// Returns a [Future] containing a [Response] with a [BalanceOut] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<BalanceOut>> adminAdjustCredits({ 
+  Future<Response<BalanceOut>> adminAdjustCredits({
     required String userId,
     required CreditAdjustmentIn creditAdjustmentIn,
     CancelToken? cancelToken,
@@ -130,7 +130,7 @@ class AdminApi {
   }
 
   /// Lista tabela mestre de custo (ADR 0003)
-  /// 
+  ///
   ///
   /// Parameters:
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -142,7 +142,7 @@ class AdminApi {
   ///
   /// Returns a [Future] containing a [Response] with a [BuiltList<CostConfigOut>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<BuiltList<CostConfigOut>>> adminListCosts({ 
+  Future<Response<BuiltList<CostConfigOut>>> adminListCosts({
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -209,7 +209,7 @@ class AdminApi {
   }
 
   /// Lista gerações (somente admin)
-  /// 
+  ///
   ///
   /// Parameters:
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -221,7 +221,7 @@ class AdminApi {
   ///
   /// Returns a [Future] containing a [Response] with a [BuiltList<GenerationOut>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<BuiltList<GenerationOut>>> adminListGenerations({ 
+  Future<Response<BuiltList<GenerationOut>>> adminListGenerations({
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -288,7 +288,7 @@ class AdminApi {
   }
 
   /// Lista pagamentos (somente admin)
-  /// 
+  ///
   ///
   /// Parameters:
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -300,7 +300,7 @@ class AdminApi {
   ///
   /// Returns a [Future] containing a [Response] with a [BuiltList<PaymentOut>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<BuiltList<PaymentOut>>> adminListPayments({ 
+  Future<Response<BuiltList<PaymentOut>>> adminListPayments({
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -367,7 +367,7 @@ class AdminApi {
   }
 
   /// Lista usuários (somente admin)
-  /// 
+  ///
   ///
   /// Parameters:
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -379,7 +379,7 @@ class AdminApi {
   ///
   /// Returns a [Future] containing a [Response] with a [BuiltList<UserOut>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<BuiltList<UserOut>>> adminListUsers({ 
+  Future<Response<BuiltList<UserOut>>> adminListUsers({
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,

@@ -35,6 +35,7 @@ export 'package:minha_ia/services/api/generated/src/model/payment_out.dart';
 export 'package:minha_ia/services/api/generated/src/model/plan_out.dart';
 export 'package:minha_ia/services/api/generated/src/model/session_in.dart';
 export 'package:minha_ia/services/api/generated/src/model/session_out.dart';
+export 'package:minha_ia/services/api/generated/src/model/upload_out.dart';
 export 'package:minha_ia/services/api/generated/src/model/user_out.dart';
 export 'package:minha_ia/services/api/generated/src/model/user_update_in.dart';
 export 'package:minha_ia/services/api/generated/src/model/validation_error.dart';

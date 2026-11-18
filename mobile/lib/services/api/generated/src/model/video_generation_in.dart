@@ -11,10 +11,10 @@ part 'video_generation_in.g.dart';
 /// VideoGenerationIn
 ///
 /// Properties:
-/// * [prompt] 
-/// * [durationSeconds] 
-/// * [resolution] 
-/// * [idempotencyKey] 
+/// * [prompt]
+/// * [durationSeconds]
+/// * [resolution]
+/// * [idempotencyKey]
 @BuiltValue()
 abstract class VideoGenerationIn implements Built<VideoGenerationIn, VideoGenerationInBuilder> {
   @BuiltValueField(wireName: r'prompt')

@@ -59,8 +59,8 @@ def get_image_provider() -> ImageProvider:
 def get_video_provider() -> VideoProvider:
     """Seleciona o provedor de vídeo (D2: fal.ai + Kling).
 
-    Ainda não injetado nas rotas: a E5 liga esta dependency ao worker. A regra
-    é a mesma da imagem — mock nunca chega a produção.
+    Injetado nas rotas de vídeo e no worker (E5). A regra é a mesma da imagem:
+    mock nunca chega a produção.
     """
     mode = settings.video_provider.strip().lower()
     if mode not in _VIDEO_PROVIDERS:
@@ -102,3 +102,17 @@ def get_media_storage() -> MediaStorage:
         settings.media_root,
         url_prefix=settings.media_url_prefix,
     )
+
+
+def get_video_job_dispatcher():
+    """Enfileira o worker no Celery. Injeto nas rotas para testar sem Redis."""
+    from app.generation.tasks import dispatch_video_job
+
+    return dispatch_video_job
+
+
+def get_fal_webhook_dispatcher():
+    """Enfileira a finalização do webhook. Injeto nas rotas para testar sem Redis."""
+    from app.generation.tasks import dispatch_fal_webhook
+
+    return dispatch_fal_webhook

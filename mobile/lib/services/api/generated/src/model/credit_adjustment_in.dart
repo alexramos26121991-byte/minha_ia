@@ -11,9 +11,9 @@ part 'credit_adjustment_in.g.dart';
 /// CreditAdjustmentIn
 ///
 /// Properties:
-/// * [userId] 
+/// * [userId]
 /// * [amount] - Positivo credita; negativo debita.
-/// * [reason] 
+/// * [reason]
 @BuiltValue()
 abstract class CreditAdjustmentIn implements Built<CreditAdjustmentIn, CreditAdjustmentInBuilder> {
   @BuiltValueField(wireName: r'user_id')

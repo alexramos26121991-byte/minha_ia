@@ -23,10 +23,10 @@ class PaymentsApi {
   const PaymentsApi(this._dio, this._serializers);
 
   /// Cria checkout hosted (cartão/Pix) — nunca expõe dados de cartão no app
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [checkoutIn] 
+  /// * [checkoutIn]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -36,7 +36,7 @@ class PaymentsApi {
   ///
   /// Returns a [Future] containing a [Response] with a [CheckoutOut] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<CheckoutOut>> createCheckout({ 
+  Future<Response<CheckoutOut>> createCheckout({
     required CheckoutIn checkoutIn,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -127,7 +127,7 @@ class PaymentsApi {
   /// Público: validação por assinatura, não por token do app.
   ///
   /// Parameters:
-  /// * [xSignature] 
+  /// * [xSignature]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -137,7 +137,7 @@ class PaymentsApi {
   ///
   /// Returns a [Future] containing a [Response] with a [BuiltMap<String, String?>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<BuiltMap<String, String?>>> handlePaymentWebhook({ 
+  Future<Response<BuiltMap<String, String?>>> handlePaymentWebhook({
     String? xSignature,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -200,7 +200,7 @@ class PaymentsApi {
   }
 
   /// Lista pagamentos do usuário
-  /// 
+  ///
   ///
   /// Parameters:
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -212,7 +212,7 @@ class PaymentsApi {
   ///
   /// Returns a [Future] containing a [Response] with a [BuiltList<PaymentOut>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<BuiltList<PaymentOut>>> listPayments({ 
+  Future<Response<BuiltList<PaymentOut>>> listPayments({
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,

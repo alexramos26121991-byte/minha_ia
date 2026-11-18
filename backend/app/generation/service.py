@@ -214,6 +214,7 @@ class GenerationService:
         generation.status = "completed"
         generation.storage_path = storage_path
         generation.provider = image.provider or provider.name
+        generation.progress = 100  # imagens são síncronas (E4); E5 expõe o campo
         db.commit()
         db.refresh(generation)
 

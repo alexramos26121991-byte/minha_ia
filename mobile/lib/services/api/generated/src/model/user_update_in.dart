@@ -11,9 +11,9 @@ part 'user_update_in.g.dart';
 /// UserUpdateIn
 ///
 /// Properties:
-/// * [fcmToken] 
-/// * [consentVersion] 
-/// * [displayName] 
+/// * [fcmToken]
+/// * [consentVersion]
+/// * [displayName]
 @BuiltValue()
 abstract class UserUpdateIn implements Built<UserUpdateIn, UserUpdateInBuilder> {
   @BuiltValueField(wireName: r'fcm_token')

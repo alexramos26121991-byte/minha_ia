@@ -19,7 +19,7 @@ class SystemApi {
   const SystemApi(this._dio, this._serializers);
 
   /// Verificação de saúde (liveness/readiness)
-  /// 
+  ///
   ///
   /// Parameters:
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -31,7 +31,7 @@ class SystemApi {
   ///
   /// Returns a [Future] containing a [Response] with a [HealthOut] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<HealthOut>> health({ 
+  Future<Response<HealthOut>> health({
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,

@@ -26,6 +26,13 @@ class AnimatePhotoIn(BaseModel):
     idempotency_key: str = Field(min_length=8, max_length=128)
 
 
+class UploadOut(BaseModel):
+    """URL pública da imagem enviada ao backend para animar depois."""
+
+    image_url: str
+    media_type: str
+
+
 class GenerationOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -41,3 +48,5 @@ class GenerationOut(BaseModel):
     media_url: str | None = None
     prompt: str | None = None
     error_message: str | None = None
+    # 0..100. Vídeos em fila começam em 0; imagens concluídas em 100.
+    progress: int = Field(default=0, ge=0, le=100)

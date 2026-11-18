@@ -11,10 +11,10 @@ part 'image_generation_in.g.dart';
 /// ImageGenerationIn
 ///
 /// Properties:
-/// * [prompt] 
-/// * [style] 
-/// * [size] 
-/// * [idempotencyKey] 
+/// * [prompt]
+/// * [style]
+/// * [size]
+/// * [idempotencyKey]
 @BuiltValue()
 abstract class ImageGenerationIn implements Built<ImageGenerationIn, ImageGenerationInBuilder> {
   @BuiltValueField(wireName: r'prompt')

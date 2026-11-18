@@ -32,7 +32,7 @@ class PlansApi {
   ///
   /// Returns a [Future] containing a [Response] with a [BuiltList<PlanOut>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<BuiltList<PlanOut>>> listPlans({ 
+  Future<Response<BuiltList<PlanOut>>> listPlans({
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,

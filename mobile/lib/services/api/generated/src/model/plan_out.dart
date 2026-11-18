@@ -11,13 +11,13 @@ part 'plan_out.g.dart';
 /// PlanOut
 ///
 /// Properties:
-/// * [id] 
-/// * [slug] 
-/// * [name] 
-/// * [monthlyCredits] 
-/// * [priceBrl] 
-/// * [recurrence] 
-/// * [isActive] 
+/// * [id]
+/// * [slug]
+/// * [name]
+/// * [monthlyCredits]
+/// * [priceBrl]
+/// * [recurrence]
+/// * [isActive]
 @BuiltValue()
 abstract class PlanOut implements Built<PlanOut, PlanOutBuilder> {
   @BuiltValueField(wireName: r'id')

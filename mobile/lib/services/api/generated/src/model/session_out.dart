@@ -11,9 +11,9 @@ part 'session_out.g.dart';
 /// SessionOut
 ///
 /// Properties:
-/// * [userId] 
-/// * [isNew] 
-/// * [planSlug] 
+/// * [userId]
+/// * [isNew]
+/// * [planSlug]
 @BuiltValue()
 abstract class SessionOut implements Built<SessionOut, SessionOutBuilder> {
   @BuiltValueField(wireName: r'user_id')

@@ -11,6 +11,8 @@ firebase-admin>=6.5,<7.0
 PyYAML>=6.0,<7.0
 # Verificação ED25519 dos webhooks do fal.ai (D2)
 cryptography>=42,<60
+# Upload multipart de imagens para animar foto (E5)
+python-multipart>=0.0.9,<1.0
 # Testes
 pytest>=8.0,<10.0
 pytest-cov>=5.0,<7.0

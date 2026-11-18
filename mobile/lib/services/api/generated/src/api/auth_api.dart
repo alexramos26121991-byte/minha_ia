@@ -24,7 +24,7 @@ class AuthApi {
   /// Verifica o ID token, cria o usuário no primeiro login e registra o fcm_token do dispositivo. Use Authorization: Bearer &lt;id-token&gt;.
   ///
   /// Parameters:
-  /// * [sessionIn] 
+  /// * [sessionIn]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -34,7 +34,7 @@ class AuthApi {
   ///
   /// Returns a [Future] containing a [Response] with a [SessionOut] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<SessionOut>> createSession({ 
+  Future<Response<SessionOut>> createSession({
     required SessionIn sessionIn,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,

@@ -11,10 +11,10 @@ part 'checkout_out.g.dart';
 /// CheckoutOut
 ///
 /// Properties:
-/// * [checkoutId] 
-/// * [provider] 
-/// * [checkoutUrl] 
-/// * [expiresAt] 
+/// * [checkoutId]
+/// * [provider]
+/// * [checkoutUrl]
+/// * [expiresAt]
 @BuiltValue()
 abstract class CheckoutOut implements Built<CheckoutOut, CheckoutOutBuilder> {
   @BuiltValueField(wireName: r'checkout_id')

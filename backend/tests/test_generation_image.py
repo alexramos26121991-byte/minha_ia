@@ -339,13 +339,10 @@ def test_costs_endpoint_exposes_backend_prices(ctx):
     assert costs["animate_photo"]["credits"] == 20
 
 
-def test_video_still_contracted_but_not_implemented(ctx):
+def test_image_concluded_has_full_progress(ctx):
     client, *_ = ctx
 
-    response = client.post(
-        "/generations/video",
-        json={"prompt": "um vídeo", "idempotency_key": "key-video-001"},
-        headers=AUTH,
-    )
+    response = client.post("/generations/image", json=_payload("key-progress-001"), headers=AUTH)
 
-    assert response.status_code == 501
+    assert response.status_code == 201, response.text
+    assert response.json()["progress"] == 100

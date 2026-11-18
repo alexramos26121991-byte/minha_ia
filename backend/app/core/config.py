@@ -35,7 +35,9 @@ class Settings(BaseSettings):
     reconcile_stale_minutes: int = 30
     reconcile_interval_seconds: int = 300
     image_generation_enabled: bool = True
-    video_generation_enabled: bool = False
+    # E5: endpoints de vídeo implementados. Em produção, sem FAL_API_KEY o
+    # próprio `get_video_provider` falha com 503 — o flag não entrega mock.
+    video_generation_enabled: bool = True
     audio_generation_enabled: bool = False
     avatar_enabled: bool = False
     payments_enabled: bool = False
@@ -78,8 +80,14 @@ class Settings(BaseSettings):
     video_provider_timeout_seconds: float = 30.0
     video_provider_retries: int = 2
     video_max_duration_seconds: int = 30
+    # Polling é fallback: o webhook é preferencial quando FAL_WEBHOOK_URL existe.
+    video_poll_attempts: int = 60
+    video_poll_interval_seconds: float = 2.0
     webhook_signature_leeway_seconds: int = 300
     jwks_cache_ttl_seconds: int = 3600
+
+    # Upload de imagem para animar foto (E5): validação MIME/tamanho no backend.
+    upload_max_bytes: int = 10 * 1024 * 1024
 
     media_root: str = str(_ROOT / "media")
     media_url_prefix: str = "/media"

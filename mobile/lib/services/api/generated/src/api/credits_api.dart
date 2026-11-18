@@ -24,7 +24,7 @@ class CreditsApi {
   const CreditsApi(this._dio, this._serializers);
 
   /// Retorna saldo, reservado e disponível
-  /// 
+  ///
   ///
   /// Parameters:
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -36,7 +36,7 @@ class CreditsApi {
   ///
   /// Returns a [Future] containing a [Response] with a [BalanceOut] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<BalanceOut>> getCreditBalance({ 
+  Future<Response<BalanceOut>> getCreditBalance({
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -182,11 +182,11 @@ class CreditsApi {
   }
 
   /// Lista o histórico append-only de créditos
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [limit] 
-  /// * [offset] 
+  /// * [limit]
+  /// * [offset]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -196,7 +196,7 @@ class CreditsApi {
   ///
   /// Returns a [Future] containing a [Response] with a [BuiltList<LedgerEntryOut>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<BuiltList<LedgerEntryOut>>> listCreditLedger({ 
+  Future<Response<BuiltList<LedgerEntryOut>>> listCreditLedger({
     int? limit = 50,
     int? offset = 0,
     CancelToken? cancelToken,

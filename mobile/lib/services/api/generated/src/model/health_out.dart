@@ -11,10 +11,10 @@ part 'health_out.g.dart';
 /// HealthOut
 ///
 /// Properties:
-/// * [status] 
-/// * [app] 
-/// * [version] 
-/// * [environment] 
+/// * [status]
+/// * [app]
+/// * [version]
+/// * [environment]
 @BuiltValue()
 abstract class HealthOut implements Built<HealthOut, HealthOutBuilder> {
   @BuiltValueField(wireName: r'status')

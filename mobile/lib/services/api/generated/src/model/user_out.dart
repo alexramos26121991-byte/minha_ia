@@ -11,14 +11,14 @@ part 'user_out.g.dart';
 /// UserOut
 ///
 /// Properties:
-/// * [id] 
-/// * [firebaseUid] 
-/// * [email] 
-/// * [displayName] 
-/// * [planSlug] 
-/// * [status] 
-/// * [consentVersion] 
-/// * [createdAt] 
+/// * [id]
+/// * [firebaseUid]
+/// * [email]
+/// * [displayName]
+/// * [planSlug]
+/// * [status]
+/// * [consentVersion]
+/// * [createdAt]
 @BuiltValue()
 abstract class UserOut implements Built<UserOut, UserOutBuilder> {
   @BuiltValueField(wireName: r'id')

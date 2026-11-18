@@ -8,7 +8,7 @@ celery_app = Celery(
     "minha_ia",
     broker=settings.redis_url,
     backend=settings.redis_url,
-    imports=("app.credits.tasks",),
+    imports=("app.credits.tasks", "app.generation.tasks"),
 )
 
 celery_app.conf.update(
@@ -29,4 +29,4 @@ celery_app.conf.update(
     },
 )
 
-# Os tasks de geração são registrados em backend/app/generation/tasks.py (E4+).
+# Tasks de geração: app.generation.tasks (vídeo/animação — E5).

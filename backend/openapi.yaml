@@ -283,6 +283,33 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
       security:
       - FirebaseBearer: []
+  /generations/uploads:
+    post:
+      tags:
+      - generations
+      summary: Envia uma imagem para animar (MIME/tamanho validados no backend)
+      operationId: uploadGenerationImage
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Body_uploadGenerationImage'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - FirebaseBearer: []
   /generations:
     get:
       tags:
@@ -632,6 +659,17 @@ components:
       - balance
       - available
       title: BalanceOut
+    Body_uploadGenerationImage:
+      properties:
+        file:
+          type: string
+          contentMediaType: application/octet-stream
+          title: File
+          description: PNG, JPEG ou WebP
+      type: object
+      required:
+      - file
+      title: Body_uploadGenerationImage
     CheckoutIn:
       properties:
         plan_slug:
@@ -768,6 +806,12 @@ components:
           - type: string
           - type: 'null'
           title: Error Message
+        progress:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Progress
+          default: 0
       type: object
       required:
       - id
@@ -977,6 +1021,20 @@ components:
       - user_id
       - is_new
       title: SessionOut
+    UploadOut:
+      properties:
+        image_url:
+          type: string
+          title: Image Url
+        media_type:
+          type: string
+          title: Media Type
+      type: object
+      required:
+      - image_url
+      - media_type
+      title: UploadOut
+      description: URL pública da imagem enviada ao backend para animar depois.
     UserOut:
       properties:
         id:

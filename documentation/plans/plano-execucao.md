@@ -1,8 +1,8 @@
 # MINHA IA — Plano de Execução Completo
 
-> Status: **Proposto (revisado)** · Versão: 1.1 · Data: 2026-11-17
+> Status: **Em execução — E0 a E5 concluídas** · Versão: 1.2 · Data: 2026-11-18
 > Objetivo: transformar a especificação do produto em etapas executáveis, ordenadas e verificáveis.
-> Foco da primeira entrega: **UI + funcional equilibrados** (app navegável com identidade visual real e um fluxo real ponta a ponta).
+> Foco da primeira entrega: **UI + funcional equilibrados** (app navegável com identidade visual real e fluxos reais ponta a ponta).
 
 ---
 
@@ -37,7 +37,7 @@ Antes da E0, garantir instalado e funcionando:
 - Integração com modelos de IA substituíveis por provedor.
 - Painel administrativo web.
 
-**Princípio orientador:** construir um *slice vertical* real dentro de uma casca visual completa. Na primeira entrega, as telas de **Home, Criar imagem, Galeria e Perfil são reais**; **Criar vídeo, Animar foto e Efeitos aparecem como "em breve" de forma honesta** — sem botões que fingem funcionar. Isso evita tanto o app "fake" quanto o backend órfão.
+**Princípio orientador:** construir um *slice vertical* real dentro de uma casca visual completa. Após a E5, **Home, Criar imagem, Criar vídeo, Animar foto, Galeria e Perfil são reais**; apenas **Efeitos segue como "em breve" de forma honesta** — sem botões que fingem funcionar. Isso evita tanto o app "fake" quanto o backend órfão.
 
 ---
 
@@ -69,15 +69,16 @@ Estas decisões **devem ser fechadas na E0**:
 ### MVP-0 — "Primeira entrega equilibrada" (E0 → E4)
 - [ ] App roda em Android; iOS via build na CI macOS + TestFlight.
 - [ ] **5 abas** navegáveis com tema e identidade visual aplicados.
-- [ ] **4 telas reais:** Home (saldo real), Criar imagem, Galeria, Perfil.
-- [ ] **3 telas honestas como "em breve":** Criar vídeo, Animar foto, Efeitos.
-- [ ] Login/cadastro reais; backend com OpenAPI publicado e cliente Dart gerado.
+- [x] **4 telas reais na E4:** Home (saldo real), Criar imagem, Galeria, Perfil.
+- [x] **Criar vídeo e Animar foto reais na E5**; apenas Efeitos permanece honestamente "em breve".
+- [x] Login/cadastro reais (modo dev local); backend com OpenAPI publicado e cliente Dart gerado.
 - [ ] **Fluxo real:** prompt → estilo/tamanho → gerar → crédito debitado → imagem salva → Galeria.
 - [ ] Falha estorna o crédito; erro claro em português.
 - [ ] `flutter analyze`, `flutter test`, `pytest`, lint OpenAPI passando.
 
 ### MVP-1 — "Produto vendável" (E5 → E8)
-- [ ] Texto→vídeo e Animar foto com jobs assíncronos + notificação push.
+- [x] Texto→vídeo e Animar foto com jobs assíncronos (202 + fila + worker + webhook/polling).
+- [ ] Notificação push real — E5 entrega a abstração `NotificationService` (no-op); FCM depende de Firebase provisionado.
 - [ ] Compra de créditos e assinaturas (30 / 300 / 1.000 / 3.000).
 - [ ] Painel admin operacional (8 áreas).
 - [ ] Efeitos e áudio conforme contratação dos modelos.
@@ -309,27 +310,34 @@ flutter test test/features/image/ test/features/gallery/
 
 ### E5 — Vídeo: Texto→vídeo, Imagem→vídeo, Animar foto
 
+- **Status: CONCLUÍDA em 2026-11-18.**
 - **Dependências:** E4 · **D2 (pré-entregue):** camada `VideoProvider`/`FalVideoProvider`/`MockVideoProvider`, `FalWebhookVerifier` (ED25519/JWKS) e `register_event()` idempotente já implementados e testados · **Modelo:** default · **Lane:** A
+
+**Entregue:** `POST /generations/video` e `/generations/animate-photo` respondem 202 com job Celery/Redis; worker com polling (60 tentativas × 2 s), webhook `POST /webhooks/falai` verificado e idempotente como caminho preferencial, estorno em falha/timeout/rejeição do dispatcher, storage local com troca isolada na dependency, upload seguro em `POST /generations/uploads` (MIME + magic bytes + 10 MB), telas mobile com custo/progresso/erro/download `.mp4` e abstração de notificação. Contrato reexportado com 21 paths e cliente Dart regerado na mesma entrega.
 
 **Tarefas**
 1. Fila Celery + Redis. `POST /generations/video` retorna **202 + job_id** imediatamente.
 2. ~~`VideoProvider` abstraction: `text_to_video`, `image_to_video`, `animate_photo`; polling + webhook.~~ **Feito na D2** (`submit()`/`status()`/`result()`, webhook preferencial, polling fallback). Falta ligar ao worker.
 3. ~~**Validar assinatura do webhook do provedor** e registrar em `webhook_events` com chave única.~~ **Feito na D2**; falta o handler HTTP que chama `FalWebhookVerifier.verify()` + `register_event()`.
 4. Worker: provedor → download → Cloud Storage → `generations` → `commit`. Retry com backoff; estorno após N tentativas.
-5. Parâmetros: modelo, duração (5s/10s), proporção (16:9, 9:16, 1:1), intensidade do movimento.
-6. **Upload seguro:** URL assinada gerada pelo backend; validar MIME e tamanho máximo no backend antes de aceitar.
-7. Telas Criar vídeo e Animar foto deixam de ser "em breve"; acompanhamento de progresso + FCM (usando `fcm_token` da E2).
-8. Atualizar OpenAPI + regerar cliente Dart.
+5. ~~Parâmetros: modelo, duração (5s/10s), proporção (16:9, 9:16, 1:1), intensidade do movimento.~~ **Ajustado:** duração 5/10/15 s e resolução 480p/720p/1080p (parâmetros naturais do Kling); `motion` é texto livre em pt-BR ("Suave", "Dinâmico", "Cinematográfico") composto como `Movimento: <motion>`. Limite de 30 s em `VideoGenerationIn`.
+6. **Upload seguro:** `POST /generations/uploads` recebe multipart e valida MIME + magic bytes (PNG/JPEG/WebP) e 10 MB no backend. A URL assinada de GCS fica pendente do provisionamento do bucket; hoje o storage é local.
+7. Telas Criar vídeo e Animar foto deixam de ser "em breve"; acompanhamento de progresso via polling e abstração `NotificationService`. **FCM real fica no-op até o Firebase existir** (decisão do usuário); a troca é por injeção, sem mudar as telas.
+8. Atualizar OpenAPI + regerar cliente Dart. **Feito:** 21 paths, Redocly válido, `openapitools.json` fixa o gerador 7.27.0.
 
-**Verificação**
+**Verificação executada em 2026-11-18**
 ```powershell
-cd backend; python -m pytest tests/test_generation_video.py -q; cd ..
-celery -A app.celery_app worker --loglevel=info
-flutter test test/features/video/
-# manual: gerar 5s 9:16 → notificação → vídeo na galeria → reproduzir
+cd backend; .\.venv\Scripts\python.exe -m pytest tests/ -q; cd ..   # 114 passed, 2 warnings
+cd backend; .\.venv\Scripts\python.exe export_openapi.py; cd ..      # 21 paths
+npx @redocly/cli lint backend/openapi.yaml                           # válido
+flutter analyze                                                      # No issues found
+flutter test --reporter compact                                      # 65 testes, verde
+flutter build apk --debug                                            # OK (fora do OneDrive)
+# pendente de infra: celery -A app.celery_app worker --loglevel=info
+# pendente de chaves: gerar 5s 1080p → polling/webhook → vídeo na galeria → reproduzir
 ```
 
-**Saída:** assíncrono sem travar API/app; vídeo correto na galeria; falha estorna e notifica.
+**Saída:** assíncrono sem travar API/app; vídeo correto na galeria; falha estorna. Notificação real depende de Firebase.
 
 **Rollback:** desligar `VIDEO_GENERATION_ENABLED`; drenar fila; reconciliador E3 estorna órfãos.
 
@@ -473,14 +481,17 @@ cd admin; npm audit --audit-level=high; cd ..
 
 ## 10. Próxima ação imediata
 
-1. Responder **D1–D12** (seção 2) — prioridade: provedores de IA (D1–D4) e pagamentos (D5/D11).
-2. Aprovar **tabela de custos → créditos** e **tabela de planos** (ex.: 1 crédito ≈ R$ 0,05).
-3. Executar **E0** (Git + 7 ADRs + PRD), depois **E1a → E1b → E1c**.
+1. **Desbloquear infraestrutura:** Docker/Postgres/Redis, projeto Firebase (`google-services.json`, `GoogleService-Info.plist`, Admin SDK, GCS com CORS) e chaves `OPENAI_API_KEY`/`FAL_API_KEY`. Sem isso, E5 roda com mock em dev e falha 503 em produção.
+2. **Fechar D5/D11 (pagamentos e preços)** e executar **E7** — créditos avulsos e assinaturas (30 / 300 / 1.000 / 3.000).
+3. **E6** (efeitos/áudio/avatares atrás de flags) e **E8** (painel admin), depois **E9** (CI/CD, deploy, LGPD, E2E).
+4. Validar iOS em runner **macOS** + TestFlight — impossível no Windows.
 
-> Granularidade: 10 etapas, 3 lanes paralelos a partir de E3. Primeira entrega equilibrada ao final da **E4**.
+> Granularidade: 10 etapas, 3 lanes paralelos a partir de E3. E0–E5 concluídas; primeira entrega equilibrada entregue na **E5**.
 
 ---
 
 ### Registro de revisão
 
 Plano revisado adversarialmente em 2026-11-17. Corrigidos 15 achados: dependências E2/E3, viabilidade iOS no Windows, ambiguidade da aba "Imagens", coerência do princípio mock, provisionamento Firebase/GCS, regeneração do OpenAPI por etapa, LGPD vs ledger, reconciliação antecipada, comandos PowerShell, fatiamento de E1/E8/E9, timeout de imagem, segurança de webhooks/upload, preços dos planos, `fcm_token`/FCM e critérios verificáveis.
+
+**v1.2 (2026-11-18):** E5 marcada como concluída. Parâmetros de vídeo ajustados para duração/resolução do Kling (o brief original previa proporção); notificação push real postergada até Firebase, com abstração no-op já injetada; critérios de MVP-0/MVP-1 atualizados; verificação local registrada com 114 testes backend, 65 testes mobile e APK debug gerado fora do OneDrive.

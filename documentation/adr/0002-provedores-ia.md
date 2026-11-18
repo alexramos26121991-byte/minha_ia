@@ -2,6 +2,7 @@
 
 - Status: **Aceito para imagem (D1) e vídeo (D2); áudio/avatar provisórios**
 - Data: 2026-11-17
+- Atualização: 2026-11-18 — E5 concluída: provedor de vídeo ligado ao worker, webhook e upload.
 - Confirmação D1: 2026-11-17 — OpenAI GPT Image (`gpt-image-1`) como provedor oficial de texto→imagem.
 - Confirmação D2: 2026-11-17 — **fal.ai + Kling** como provedor oficial de texto→vídeo, imagem→vídeo e animar foto.
 
@@ -26,7 +27,9 @@ Para imagem, `IMAGE_PROVIDER=auto` escolhe OpenAI quando a chave existe e mock a
 
 Para vídeo, a mesma regra vale com `VIDEO_PROVIDER=auto|falai|mock`: `auto` usa fal.ai+Kling quando `FAL_API_KEY` existe e mock em desenvolvimento; `mock` (ou `auto` sem chave) com `APP_ENV=production` falha com 503. A geração é assíncrona: a Queue API do fal.ai devolve `request_id` + URLs de status/resultado, o webhook é preferencial e o polling é fallback. Webhooks são verificados por assinatura ED25519 contra o JWKS `https://rest.fal.ai/.well-known/jwks.json` (janela de 5 min) e registrados de forma idempotente em `webhook_events`. Chaves ficam somente no backend.
 
-**Escopo de D2:** entregar a camada de provedor (`VideoProvider`, `FalVideoProvider`, `MockVideoProvider`), a verificação de webhook, o registro idempotente de eventos e seus testes. Os endpoints `POST /generations/video` e `/animate-photo` permanecem 501 até a E5; `VIDEO_GENERATION_ENABLED` continua `false`.
+**Escopo de D2:** entregar a camada de provedor (`VideoProvider`, `FalVideoProvider`, `MockVideoProvider`), a verificação de webhook, o registro idempotente de eventos e seus testes. **Conclusão na E5 (2026-11-18):** `POST /generations/video` e `POST /generations/animate-photo` respondem 202 com job assíncrono; `VIDEO_GENERATION_ENABLED` passou a `true` no default; `POST /webhooks/falai` foi ligado ao worker, com polling como fallback. O upload seguro entrou em `POST /generations/uploads` (MIME + magic bytes + 10 MB).
+
+**Notificações:** o app consome eventos de mudança de status por uma abstração `NotificationService`. Como o Firebase ainda não foi provisionado, a implementação é `NoopNotificationService` e o acompanhamento real hoje é feito por polling (`GET /generations/{id}`). A troca por FCM será feita por injeção, sem alterar as telas.
 
 ## Alternativas consideradas
 - Chamar APIs de IA direto do app — rejeitado: vazamento de chaves e impossibilidade de controlar créditos.

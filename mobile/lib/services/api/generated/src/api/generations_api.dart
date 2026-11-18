@@ -14,6 +14,7 @@ import 'package:minha_ia/services/api/generated/src/model/animate_photo_in.dart'
 import 'package:minha_ia/services/api/generated/src/model/generation_out.dart';
 import 'package:minha_ia/services/api/generated/src/model/http_validation_error.dart';
 import 'package:minha_ia/services/api/generated/src/model/image_generation_in.dart';
+import 'package:minha_ia/services/api/generated/src/model/upload_out.dart';
 import 'package:minha_ia/services/api/generated/src/model/video_generation_in.dart';
 
 class GenerationsApi {
@@ -25,10 +26,10 @@ class GenerationsApi {
   const GenerationsApi(this._dio, this._serializers);
 
   /// Enfileira animação de fotografia
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [animatePhotoIn] 
+  /// * [animatePhotoIn]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -38,7 +39,7 @@ class GenerationsApi {
   ///
   /// Returns a [Future] containing a [Response] with a [GenerationOut] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<GenerationOut>> animatePhoto({ 
+  Future<Response<GenerationOut>> animatePhoto({
     required AnimatePhotoIn animatePhotoIn,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -126,10 +127,10 @@ class GenerationsApi {
   }
 
   /// Remove uma geração da galeria (sem estorno de crédito)
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [generationId] 
+  /// * [generationId]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -139,7 +140,7 @@ class GenerationsApi {
   ///
   /// Returns a [Future]
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<void>> deleteGeneration({ 
+  Future<Response<void>> deleteGeneration({
     required String generationId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -179,10 +180,10 @@ class GenerationsApi {
   }
 
   /// Gera uma imagem (reserva, confirma ou estorna créditos)
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [imageGenerationIn] 
+  /// * [imageGenerationIn]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -192,7 +193,7 @@ class GenerationsApi {
   ///
   /// Returns a [Future] containing a [Response] with a [GenerationOut] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<GenerationOut>> generateImage({ 
+  Future<Response<GenerationOut>> generateImage({
     required ImageGenerationIn imageGenerationIn,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -280,10 +281,10 @@ class GenerationsApi {
   }
 
   /// Enfileira geração de vídeo (202 + job)
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [videoGenerationIn] 
+  /// * [videoGenerationIn]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -293,7 +294,7 @@ class GenerationsApi {
   ///
   /// Returns a [Future] containing a [Response] with a [GenerationOut] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<GenerationOut>> generateVideo({ 
+  Future<Response<GenerationOut>> generateVideo({
     required VideoGenerationIn videoGenerationIn,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -381,10 +382,10 @@ class GenerationsApi {
   }
 
   /// Retorna uma geração pelo id
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [generationId] 
+  /// * [generationId]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -394,7 +395,7 @@ class GenerationsApi {
   ///
   /// Returns a [Future] containing a [Response] with a [GenerationOut] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<GenerationOut>> getGeneration({ 
+  Future<Response<GenerationOut>> getGeneration({
     required String generationId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -462,11 +463,11 @@ class GenerationsApi {
   }
 
   /// Lista o histórico de gerações (galeria)
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [limit] 
-  /// * [offset] 
+  /// * [limit]
+  /// * [offset]
   /// * [type] - Filtra a galeria por tipo de geração.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -477,7 +478,7 @@ class GenerationsApi {
   ///
   /// Returns a [Future] containing a [Response] with a [BuiltList<GenerationOut>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<BuiltList<GenerationOut>>> listGenerations({ 
+  Future<Response<BuiltList<GenerationOut>>> listGenerations({
     int? limit = 50,
     int? offset = 0,
     String? type,
@@ -542,6 +543,108 @@ class GenerationsApi {
     }
 
     return Response<BuiltList<GenerationOut>>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Envia uma imagem para animar (MIME/tamanho validados no backend)
+  ///
+  ///
+  /// Parameters:
+  /// * [file] - PNG, JPEG ou WebP
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [UploadOut] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<UploadOut>> uploadGenerationImage({
+    required MultipartFile file,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/generations/uploads';
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'http',
+            'scheme': 'bearer',
+            'name': 'FirebaseBearer',
+          },
+        ],
+        ...?extra,
+      },
+      contentType: 'multipart/form-data',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = FormData.fromMap(<String, dynamic>{
+        r'file': file,
+      });
+
+    } catch(error, stackTrace) {
+      throw DioException(
+         requestOptions: _options.compose(
+          _dio.options,
+          _path,
+        ),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    UploadOut? _responseData;
+
+    try {
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(UploadOut),
+      ) as UploadOut;
+
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<UploadOut>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

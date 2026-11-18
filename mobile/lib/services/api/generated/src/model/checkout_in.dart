@@ -11,9 +11,9 @@ part 'checkout_in.g.dart';
 /// CheckoutIn
 ///
 /// Properties:
-/// * [planSlug] 
-/// * [provider] 
-/// * [successUrl] 
+/// * [planSlug]
+/// * [provider]
+/// * [successUrl]
 @BuiltValue()
 abstract class CheckoutIn implements Built<CheckoutIn, CheckoutInBuilder> {
   @BuiltValueField(wireName: r'plan_slug')

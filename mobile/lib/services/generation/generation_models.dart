@@ -4,6 +4,17 @@
 /// precisam conhecer `built_value` nem o contrato HTTP.
 library;
 
+/// Tipo de criação iniciada pelo usuário (usado para mensagens e custos).
+enum GenerationKind { image, video, animatePhoto }
+
+extension GenerationKindLabel on GenerationKind {
+  String get label => switch (this) {
+        GenerationKind.image => 'imagem',
+        GenerationKind.video => 'vídeo',
+        GenerationKind.animatePhoto => 'animação',
+      };
+}
+
 /// Filtros exibidos na galeria, na ordem exata pedida pelo produto.
 enum GenerationFilter { videos, images, downloads, projects }
 
@@ -15,7 +26,7 @@ extension GenerationFilterLabel on GenerationFilter {
         GenerationFilter.projects => 'Projetos',
       };
 
-  /// Somente imagens e vídeos existem no backend da E4.
+  /// Imagens, vídeos e animações existem no backend a partir da E5.
   bool get hasBackendData => switch (this) {
         GenerationFilter.videos || GenerationFilter.images => true,
         GenerationFilter.downloads || GenerationFilter.projects => false,
@@ -65,6 +76,7 @@ class GenerationItem {
     this.prompt,
     this.mediaUrl,
     this.errorMessage,
+    this.progress = 0,
   });
 
   final String id;
@@ -76,8 +88,22 @@ class GenerationItem {
   final String? mediaUrl;
   final String? errorMessage;
 
+  /// 0..100, informado pelo backend para jobs assíncronos (E5).
+  final int progress;
+
   bool get isVideo => type == 'video' || type == 'animate_photo';
   bool get isFailed => status == 'failed';
+  bool get isCompleted => status == 'completed';
+  bool get isTerminal => isCompleted || isFailed;
+  bool get isQueued => status == 'pending' || status == 'queued';
+  bool get isProcessing => status == 'processing' || isQueued;
+
+  String get progressLabel {
+    if (isCompleted) return 'Concluído';
+    if (isFailed) return 'Falhou';
+    if (isQueued) return 'Na fila';
+    return 'Processando · $progress%';
+  }
 
   String get title {
     final text = (prompt ?? '').trim().replaceAll(RegExp(r'\s+'), ' ');

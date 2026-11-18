@@ -1,26 +1,63 @@
 """Rotas de geração — imagem (E4), vídeo/animação (E5), áudio/avatar (E6)."""
 
+import uuid
 from typing import Literal
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.database import get_db
 from app.core.deps import get_current_user
-from app.core.errors import not_implemented
-from app.generation.deps import get_image_provider, get_media_storage
+from app.generation.deps import (
+    get_image_provider,
+    get_media_storage,
+    get_video_job_dispatcher,
+    get_video_provider,
+)
 from app.generation.providers.base import ImageProvider
+from app.generation.providers.video_base import VideoOperation, VideoProvider
 from app.generation.schemas import (
     AnimatePhotoIn,
     GenerationOut,
     ImageGenerationIn,
+    UploadOut,
     VideoGenerationIn,
 )
 from app.generation.service import GenerationService
 from app.generation.storage import MediaStorage
+from app.generation.video_service import JobDispatcher, VideoGenerationService
 from app.users.model import User
 
 router = APIRouter(prefix="/generations", tags=["generations"])
+
+# MIME declarado + assinatura real do arquivo: um HTML renomeado não vira imagem.
+_ALLOWED_UPLOADS: dict[str, tuple[bytes, str]] = {
+    "image/png": (b"\x89PNG\r\n\x1a\n", "png"),
+    "image/jpeg": (b"\xff\xd8\xff", "jpg"),
+    "image/webp": (b"RIFF", "webp"),
+}
+
+
+def _upload_extension(media_type: str, content: bytes) -> str:
+    allowed = _ALLOWED_UPLOADS.get(media_type)
+    if allowed is None:
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail="Use uma imagem PNG, JPEG ou WebP.",
+        )
+    magic, extension = allowed
+    if not content.startswith(magic):
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail="O arquivo não é uma imagem válida.",
+        )
+    if extension == "webp" and content[8:12] != b"WEBP":
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail="O arquivo não é uma imagem válida.",
+        )
+    return extension
 
 
 @router.post(
@@ -49,11 +86,23 @@ def generate_image(
     operation_id="generateVideo",
     summary="Enfileira geração de vídeo (202 + job)",
 )
-async def generate_video(
+def generate_video(
     payload: VideoGenerationIn,
     user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    provider: VideoProvider = Depends(get_video_provider),
+    storage: MediaStorage = Depends(get_media_storage),
+    dispatcher: JobDispatcher = Depends(get_video_job_dispatcher),
 ) -> GenerationOut:
-    raise not_implemented("E5")
+    return VideoGenerationService.enqueue(
+        db,
+        user=user,
+        operation=VideoOperation.TEXT_TO_VIDEO,
+        payload=payload,
+        provider=provider,
+        storage=storage,
+        dispatcher=dispatcher,
+    )
 
 
 @router.post(
@@ -63,11 +112,51 @@ async def generate_video(
     operation_id="animatePhoto",
     summary="Enfileira animação de fotografia",
 )
-async def animate_photo(
+def animate_photo(
     payload: AnimatePhotoIn,
     user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    provider: VideoProvider = Depends(get_video_provider),
+    storage: MediaStorage = Depends(get_media_storage),
+    dispatcher: JobDispatcher = Depends(get_video_job_dispatcher),
 ) -> GenerationOut:
-    raise not_implemented("E5")
+    return VideoGenerationService.enqueue(
+        db,
+        user=user,
+        operation=VideoOperation.ANIMATE_PHOTO,
+        payload=payload,
+        provider=provider,
+        storage=storage,
+        dispatcher=dispatcher,
+    )
+
+
+@router.post(
+    "/uploads",
+    response_model=UploadOut,
+    status_code=status.HTTP_201_CREATED,
+    operation_id="uploadGenerationImage",
+    summary="Envia uma imagem para animar (MIME/tamanho validados no backend)",
+)
+async def upload_generation_image(
+    file: UploadFile = File(..., description="PNG, JPEG ou WebP"),
+    user: User = Depends(get_current_user),
+    storage: MediaStorage = Depends(get_media_storage),
+) -> UploadOut:
+    content = await file.read(settings.upload_max_bytes + 1)
+    if len(content) > settings.upload_max_bytes:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail="A imagem deve ter no máximo 10 MB.",
+        )
+    extension = _upload_extension(file.content_type or "", content)
+    path = storage.save(
+        user_id=user.id,
+        generation_id=uuid.uuid4(),
+        content=content,
+        extension=extension,
+    )
+    return UploadOut(image_url=storage.url_for(path), media_type=file.content_type or "")
 
 
 @router.get(
