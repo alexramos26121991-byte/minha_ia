@@ -4,8 +4,11 @@ O OpenAPI gerado aqui é a fonte do contrato versionado em `backend/openapi.yaml
 e do cliente Dart em `mobile/lib/services/api/generated/`.
 """
 
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
+from fastapi.staticfiles import StaticFiles
 
 from app import __version__
 from app.admin.router import router as admin_router
@@ -66,6 +69,16 @@ app.include_router(credits_router)
 app.include_router(generation_router)
 app.include_router(payments_router)
 app.include_router(admin_router)
+
+# Mídia gerada na E4. É um mount público: as URLs são usadas diretamente pelo
+# app e não carregam credencial de provedor nem regra de crédito.
+MEDIA_ROOT = Path(settings.media_root)
+MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
+app.mount(
+    "/" + settings.media_url_prefix.strip("/"),
+    StaticFiles(directory=MEDIA_ROOT),
+    name="media",
+)
 
 
 # Operações públicas: não exigem token do app (health, catálogo e webhook).

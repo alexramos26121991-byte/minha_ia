@@ -37,3 +37,7 @@ class GenerationOut(BaseModel):
     cost_credits: int
     storage_path: str | None = None
     created_at: datetime
+    # Campos derivados pelo serviço (não existem na tabela `generations`).
+    media_url: str | None = None
+    prompt: str | None = None
+    error_message: str | None = None

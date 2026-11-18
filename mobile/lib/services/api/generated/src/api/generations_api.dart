@@ -125,7 +125,60 @@ class GenerationsApi {
     );
   }
 
-  /// Gera uma imagem (reserva 5+ créditos, commit/refund)
+  /// Remove uma geração da galeria (sem estorno de crédito)
+  /// 
+  ///
+  /// Parameters:
+  /// * [generationId] 
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future]
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<void>> deleteGeneration({ 
+    required String generationId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/generations/{generation_id}'.replaceAll('{' r'generation_id' '}', encodeQueryParameter(_serializers, generationId, const FullType(String)).toString());
+    final _options = Options(
+      method: r'DELETE',
+      headers: <String, dynamic>{
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'http',
+            'scheme': 'bearer',
+            'name': 'FirebaseBearer',
+          },
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    return _response;
+  }
+
+  /// Gera uma imagem (reserva, confirma ou estorna créditos)
   /// 
   ///
   /// Parameters:
@@ -414,6 +467,7 @@ class GenerationsApi {
   /// Parameters:
   /// * [limit] 
   /// * [offset] 
+  /// * [type] - Filtra a galeria por tipo de geração.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -426,6 +480,7 @@ class GenerationsApi {
   Future<Response<BuiltList<GenerationOut>>> listGenerations({ 
     int? limit = 50,
     int? offset = 0,
+    String? type,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -455,6 +510,7 @@ class GenerationsApi {
     final _queryParameters = <String, dynamic>{
       if (limit != null) r'limit': encodeQueryParameter(_serializers, limit, const FullType(int)),
       if (offset != null) r'offset': encodeQueryParameter(_serializers, offset, const FullType(int)),
+      if (type != null) r'type': encodeQueryParameter(_serializers, type, const FullType(String)),
     };
 
     final _response = await _dio.request<Object>(

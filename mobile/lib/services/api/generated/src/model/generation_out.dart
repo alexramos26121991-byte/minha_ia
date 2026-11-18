@@ -19,6 +19,9 @@ part 'generation_out.g.dart';
 /// * [costCredits] 
 /// * [storagePath] 
 /// * [createdAt] 
+/// * [mediaUrl] 
+/// * [prompt] 
+/// * [errorMessage] 
 @BuiltValue()
 abstract class GenerationOut implements Built<GenerationOut, GenerationOutBuilder> {
   @BuiltValueField(wireName: r'id')
@@ -44,6 +47,15 @@ abstract class GenerationOut implements Built<GenerationOut, GenerationOutBuilde
 
   @BuiltValueField(wireName: r'created_at')
   DateTime get createdAt;
+
+  @BuiltValueField(wireName: r'media_url')
+  String? get mediaUrl;
+
+  @BuiltValueField(wireName: r'prompt')
+  String? get prompt;
+
+  @BuiltValueField(wireName: r'error_message')
+  String? get errorMessage;
 
   GenerationOut._();
 
@@ -112,6 +124,27 @@ class _$GenerationOutSerializer implements PrimitiveSerializer<GenerationOut> {
       object.createdAt,
       specifiedType: const FullType(DateTime),
     );
+    if (object.mediaUrl != null) {
+      yield r'media_url';
+      yield serializers.serialize(
+        object.mediaUrl,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
+    if (object.prompt != null) {
+      yield r'prompt';
+      yield serializers.serialize(
+        object.prompt,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
+    if (object.errorMessage != null) {
+      yield r'error_message';
+      yield serializers.serialize(
+        object.errorMessage,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
   }
 
   @override
@@ -192,6 +225,30 @@ class _$GenerationOutSerializer implements PrimitiveSerializer<GenerationOut> {
             specifiedType: const FullType(DateTime),
           ) as DateTime;
           result.createdAt = valueDes;
+          break;
+        case r'media_url':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.mediaUrl = valueDes;
+          break;
+        case r'prompt':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.prompt = valueDes;
+          break;
+        case r'error_message':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.errorMessage = valueDes;
           break;
         default:
           unhandled.add(key);

@@ -21,6 +21,9 @@ build/
 coverage/
 *.symlink
 
+# Mídia gerada localmente (E4) — nunca versionar
+backend/media/
+
 # Python
 __pycache__/
 *.py[cod]

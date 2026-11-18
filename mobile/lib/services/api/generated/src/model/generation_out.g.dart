@@ -23,6 +23,12 @@ class _$GenerationOut extends GenerationOut {
   final String? storagePath;
   @override
   final DateTime createdAt;
+  @override
+  final String? mediaUrl;
+  @override
+  final String? prompt;
+  @override
+  final String? errorMessage;
 
   factory _$GenerationOut([void Function(GenerationOutBuilder)? updates]) =>
       (GenerationOutBuilder()..update(updates))._build();
@@ -35,7 +41,10 @@ class _$GenerationOut extends GenerationOut {
       this.provider,
       required this.costCredits,
       this.storagePath,
-      required this.createdAt})
+      required this.createdAt,
+      this.mediaUrl,
+      this.prompt,
+      this.errorMessage})
       : super._();
   @override
   GenerationOut rebuild(void Function(GenerationOutBuilder) updates) =>
@@ -55,7 +64,10 @@ class _$GenerationOut extends GenerationOut {
         provider == other.provider &&
         costCredits == other.costCredits &&
         storagePath == other.storagePath &&
-        createdAt == other.createdAt;
+        createdAt == other.createdAt &&
+        mediaUrl == other.mediaUrl &&
+        prompt == other.prompt &&
+        errorMessage == other.errorMessage;
   }
 
   @override
@@ -69,6 +81,9 @@ class _$GenerationOut extends GenerationOut {
     _$hash = $jc(_$hash, costCredits.hashCode);
     _$hash = $jc(_$hash, storagePath.hashCode);
     _$hash = $jc(_$hash, createdAt.hashCode);
+    _$hash = $jc(_$hash, mediaUrl.hashCode);
+    _$hash = $jc(_$hash, prompt.hashCode);
+    _$hash = $jc(_$hash, errorMessage.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -83,7 +98,10 @@ class _$GenerationOut extends GenerationOut {
           ..add('provider', provider)
           ..add('costCredits', costCredits)
           ..add('storagePath', storagePath)
-          ..add('createdAt', createdAt))
+          ..add('createdAt', createdAt)
+          ..add('mediaUrl', mediaUrl)
+          ..add('prompt', prompt)
+          ..add('errorMessage', errorMessage))
         .toString();
   }
 }
@@ -124,6 +142,18 @@ class GenerationOutBuilder
   DateTime? get createdAt => _$this._createdAt;
   set createdAt(DateTime? createdAt) => _$this._createdAt = createdAt;
 
+  String? _mediaUrl;
+  String? get mediaUrl => _$this._mediaUrl;
+  set mediaUrl(String? mediaUrl) => _$this._mediaUrl = mediaUrl;
+
+  String? _prompt;
+  String? get prompt => _$this._prompt;
+  set prompt(String? prompt) => _$this._prompt = prompt;
+
+  String? _errorMessage;
+  String? get errorMessage => _$this._errorMessage;
+  set errorMessage(String? errorMessage) => _$this._errorMessage = errorMessage;
+
   GenerationOutBuilder() {
     GenerationOut._defaults(this);
   }
@@ -139,6 +169,9 @@ class GenerationOutBuilder
       _costCredits = $v.costCredits;
       _storagePath = $v.storagePath;
       _createdAt = $v.createdAt;
+      _mediaUrl = $v.mediaUrl;
+      _prompt = $v.prompt;
+      _errorMessage = $v.errorMessage;
       _$v = null;
     }
     return this;
@@ -173,6 +206,9 @@ class GenerationOutBuilder
           storagePath: storagePath,
           createdAt: BuiltValueNullFieldError.checkNotNull(
               createdAt, r'GenerationOut', 'createdAt'),
+          mediaUrl: mediaUrl,
+          prompt: prompt,
+          errorMessage: errorMessage,
         );
     replace(_$result);
     return _$result;

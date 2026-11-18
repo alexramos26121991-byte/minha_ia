@@ -58,6 +58,15 @@ class Settings(BaseSettings):
     mercadopago_access_token: str = ""
     mercadopago_webhook_secret: str = ""
 
+    # Geração de imagem (E4). O provedor tem timeout maior que o gateway para
+    # que a resposta ao cliente seja limitada antes da chamada externa.
+    openai_image_model: str = "gpt-image-1"
+    image_provider_timeout_seconds: float = 30.0
+    image_gateway_timeout_seconds: float = 25.0
+    image_provider_retries: int = 2
+    media_root: str = str(_ROOT / "media")
+    media_url_prefix: str = "/media"
+
     model_config = SettingsConfigDict(
         env_file=str(_ROOT.parent / ".env"),
         env_file_encoding="utf-8",

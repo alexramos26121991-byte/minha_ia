@@ -180,7 +180,7 @@ paths:
     post:
       tags:
       - generations
-      summary: Gera uma imagem (reserva 5+ créditos, commit/refund)
+      summary: Gera uma imagem (reserva, confirma ou estorna créditos)
       operationId: generateImage
       requestBody:
         content:
@@ -283,6 +283,20 @@ paths:
           minimum: 0
           default: 0
           title: Offset
+      - name: type
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - enum:
+            - image
+            - video
+            - animate_photo
+            type: string
+          - type: 'null'
+          description: Filtra a galeria por tipo de geração.
+          title: Type
+        description: Filtra a galeria por tipo de geração.
       responses:
         '200':
           description: Successful Response
@@ -321,6 +335,29 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenerationOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - generations
+      summary: Remove uma geração da galeria (sem estorno de crédito)
+      operationId: deleteGeneration
+      security:
+      - FirebaseBearer: []
+      parameters:
+      - name: generation_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Generation Id
+      responses:
+        '204':
+          description: Successful Response
         '422':
           description: Validation Error
           content:
@@ -690,6 +727,21 @@ components:
           type: string
           format: date-time
           title: Created At
+        media_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Media Url
+        prompt:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Prompt
+        error_message:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Error Message
       type: object
       required:
       - id
