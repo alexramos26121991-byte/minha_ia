@@ -58,8 +58,10 @@ class Settings(BaseSettings):
     mercadopago_access_token: str = ""
     mercadopago_webhook_secret: str = ""
 
-    # Geração de imagem (E4). O provedor tem timeout maior que o gateway para
-    # que a resposta ao cliente seja limitada antes da chamada externa.
+    # Geração de imagem (E4/D1). `auto` usa OpenAI quando há chave e mock em
+    # desenvolvimento; `mock` é recusado em produção para nunca entregar PNG
+    # sintético ao usuário final.
+    image_provider: str = "auto"
     openai_image_model: str = "gpt-image-1"
     image_provider_timeout_seconds: float = 30.0
     image_gateway_timeout_seconds: float = 25.0

@@ -47,7 +47,7 @@ Estas decisões **devem ser fechadas na E0**:
 
 | # | Decisão | Recomendação | Por quê |
 |---|---|---|---|
-| D1 | Provedor de imagens | GPT Image via OpenAI (ou fal.ai/Replicate) | Qualidade e estabilidade; abstração permite trocar |
+| D1 | Provedor de imagens | **Confirmado: GPT Image via OpenAI** (`gpt-image-1`); fal.ai/Replicate como alternativas | Qualidade e estabilidade; abstração permite trocar |
 | D2 | Provedor de vídeo | Kling / Luma / Veo via fal.ai ou Replicate | Geração assíncrona, custo por segundo |
 | D3 | Provedor de áudio | ElevenLabs (voz) + MusicGen/Lyria (música) | Separar por capacidade |
 | D4 | Lip-sync / avatares | Sync Labs ou Hedra — **flag desligada no início** | Não pode bloquear o MVP |

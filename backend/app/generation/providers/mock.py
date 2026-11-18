@@ -1,7 +1,8 @@
 """Provedor local de desenvolvimento — PNG sintético, sem rede e sem chave.
 
-É o padrão quando ``OPENAI_API_KEY`` está vazio. Não é um gerador de imagens
-real: serve para validar o fluxo ponta a ponta (débito, storage, galeria).
+É usado quando ``IMAGE_PROVIDER=mock`` ou quando ``auto`` não encontra
+``OPENAI_API_KEY`` fora de produção. Não é um gerador de imagens real: serve
+para validar o fluxo ponta a ponta (débito, storage, galeria).
 """
 
 from __future__ import annotations
