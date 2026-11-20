@@ -16,7 +16,6 @@ class Settings(BaseSettings):
     app_env: str = "development"
     api_base_url: str = "http://localhost:8000"
     log_level: str = "INFO"
-    jwt_secret: str = "trocar"
 
     # Banco e fila
     postgres_host: str = "localhost"
@@ -137,11 +136,8 @@ class Settings(BaseSettings):
         problems: list[str] = []
         if self.auth_provider.strip().lower() != "firebase":
             problems.append("AUTH_PROVIDER=firebase é obrigatório")
-        if (
-            self.jwt_secret.strip().lower() in weak_values
-            or len(self.jwt_secret.strip()) < 32
-        ):
-            problems.append("JWT_SECRET precisa de ao menos 32 caracteres e não pode ser padrão")
+        # Sem HMAC próprio: security.py valida ID tokens do Firebase. Exigir um
+        # JWT_SECRET no guard daria falsa sensação de segurança (config morta).
         if self.postgres_password.strip().lower() in weak_values:
             problems.append("POSTGRES_PASSWORD não pode ser um valor padrão")
         if not self.firebase_project_id.strip():

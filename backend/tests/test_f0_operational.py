@@ -133,7 +133,6 @@ def _production_settings(**overrides):
     values = {
         "app_env": "production",
         "auth_provider": "firebase",
-        "jwt_secret": "x" * 48,
         "postgres_password": "senha-forte-nao-padrao-2026",
         "firebase_project_id": "projeto-teste",
         "firebase_service_account_json": '{"type": "service_account"}',
@@ -150,6 +149,12 @@ def test_producao_com_configuracao_completa_inicializa() -> None:
     assert _production_settings().app_env == "production"
 
 
+def test_producao_nao_exige_jwt_secret() -> None:
+    # security.py valida ID tokens do Firebase: não existe HMAC próprio.
+    # Manter JWT_SECRET no guard seria config morta e falsa sensação de segurança.
+    assert not hasattr(_production_settings(), "jwt_secret")
+
+
 def test_desenvolvimento_aceita_defaults() -> None:
     assert config_module.Settings(_env_file=None).app_env == "development"
 
@@ -158,8 +163,6 @@ def test_desenvolvimento_aceita_defaults() -> None:
     ("campo", "valor", "fragmento"),
     [
         ("auth_provider", "dev", "AUTH_PROVIDER"),
-        ("jwt_secret", "trocar", "JWT_SECRET"),
-        ("jwt_secret", "curto", "JWT_SECRET"),
         ("postgres_password", "trocar", "POSTGRES_PASSWORD"),
         ("firebase_project_id", "", "FIREBASE_PROJECT_ID"),
         ("firebase_service_account_json", "", "FIREBASE_SERVICE_ACCOUNT_JSON"),

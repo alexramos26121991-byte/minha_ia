@@ -15,19 +15,42 @@ x-backend-env: &backend-env
   POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-trocar}
   REDIS_URL: redis://redis:6379/0
   LOG_LEVEL: ${LOG_LEVEL:-INFO}
-  JWT_SECRET: ${JWT_SECRET:-trocar}
   CREDITS_ENFORCED: ${CREDITS_ENFORCED:-true}
   AUTH_PROVIDER: ${AUTH_PROVIDER:-dev}
   FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-}
   FIREBASE_SERVICE_ACCOUNT_JSON: ${FIREBASE_SERVICE_ACCOUNT_JSON:-}
+  # Reconciliação de reservas órfãs (beat)
+  RECONCILE_STALE_MINUTES: ${RECONCILE_STALE_MINUTES:-30}
+  RECONCILE_INTERVAL_SECONDS: ${RECONCILE_INTERVAL_SECONDS:-300}
+  # Geração de imagem (E4)
+  IMAGE_GENERATION_ENABLED: ${IMAGE_GENERATION_ENABLED:-true}
   IMAGE_PROVIDER: ${IMAGE_PROVIDER:-auto}
   OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+  OPENAI_IMAGE_MODEL: ${OPENAI_IMAGE_MODEL:-gpt-image-1}
+  IMAGE_PROVIDER_TIMEOUT_SECONDS: ${IMAGE_PROVIDER_TIMEOUT_SECONDS:-30}
+  IMAGE_GATEWAY_TIMEOUT_SECONDS: ${IMAGE_GATEWAY_TIMEOUT_SECONDS:-25}
+  IMAGE_PROVIDER_RETRIES: ${IMAGE_PROVIDER_RETRIES:-2}
+  # Geração de vídeo (E5)
+  VIDEO_GENERATION_ENABLED: ${VIDEO_GENERATION_ENABLED:-true}
   VIDEO_PROVIDER: ${VIDEO_PROVIDER:-auto}
   FAL_API_KEY: ${FAL_API_KEY:-}
+  FAL_VIDEO_TEXT_MODEL: ${FAL_VIDEO_TEXT_MODEL:-fal-ai/kling-video/v3/pro/text-to-video}
+  FAL_VIDEO_IMAGE_MODEL: ${FAL_VIDEO_IMAGE_MODEL:-fal-ai/kling-video/v3/pro/image-to-video}
   FAL_WEBHOOK_URL: ${FAL_WEBHOOK_URL:-}
   FAL_WEBHOOK_USER_ID: ${FAL_WEBHOOK_USER_ID:-}
+  FAL_JWKS_URL: ${FAL_JWKS_URL:-https://rest.fal.ai/.well-known/jwks.json}
+  VIDEO_PROVIDER_TIMEOUT_SECONDS: ${VIDEO_PROVIDER_TIMEOUT_SECONDS:-30}
+  VIDEO_PROVIDER_RETRIES: ${VIDEO_PROVIDER_RETRIES:-2}
+  VIDEO_MAX_DURATION_SECONDS: ${VIDEO_MAX_DURATION_SECONDS:-30}
+  VIDEO_POLL_ATTEMPTS: ${VIDEO_POLL_ATTEMPTS:-60}
+  VIDEO_POLL_INTERVAL_SECONDS: ${VIDEO_POLL_INTERVAL_SECONDS:-2}
+  WEBHOOK_SIGNATURE_LEEWAY_SECONDS: ${WEBHOOK_SIGNATURE_LEEWAY_SECONDS:-300}
+  JWKS_CACHE_TTL_SECONDS: ${JWKS_CACHE_TTL_SECONDS:-3600}
+  # Fail-closed: mocks exigem opt-in e nunca rodam em produção
   ALLOW_MOCK_PROVIDERS: ${ALLOW_MOCK_PROVIDERS:-false}
+  UPLOAD_MAX_BYTES: ${UPLOAD_MAX_BYTES:-10485760}
   MEDIA_ROOT: /app/media
+  MEDIA_URL_PREFIX: ${MEDIA_URL_PREFIX:-/media}
   SENTRY_DSN: ${SENTRY_DSN:-}
   SENTRY_TRACES_SAMPLE_RATE: ${SENTRY_TRACES_SAMPLE_RATE:-0}
   WORKER_SOFT_TIMEOUT_SECONDS: ${WORKER_SOFT_TIMEOUT_SECONDS:-900}
@@ -92,6 +115,9 @@ services:
     restart: unless-stopped
     environment: *backend-env
     command: ["celery", "-A", "app.core.celery_app:celery_app", "worker", "--loglevel=info", "--concurrency=2"]
+    # A imagem herda um HEALTHCHECK HTTP da API; o worker não expõe /health.
+    healthcheck:
+      disable: true
     volumes:
       - media:/app/media
     depends_on:
@@ -107,6 +133,9 @@ services:
     restart: unless-stopped
     environment: *backend-env
     command: ["celery", "-A", "app.core.celery_app:celery_app", "beat", "--loglevel=info"]
+    # A imagem herda um HEALTHCHECK HTTP da API; o beat não expõe /health.
+    healthcheck:
+      disable: true
     depends_on:
       redis:
         condition: service_healthy

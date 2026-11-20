@@ -350,7 +350,7 @@ flutter build apk --debug                                            # OK (fora 
 
 **Entregue:**
 1. **Fail-closed de provedores:** `auto` sempre escolhe OpenAI/fal.ai; sem chave, 503 em qualquer ambiente. Mock exige `ALLOW_MOCK_PROVIDERS=true` e é recusado em produção (`get_image_provider`/`get_video_provider`).
-2. **Guard de produção:** `Settings` valida no boot `AUTH_PROVIDER=firebase`, `JWT_SECRET`, `POSTGRES_PASSWORD`, `FIREBASE_PROJECT_ID`, `FIREBASE_SERVICE_ACCOUNT_JSON`, `OPENAI_API_KEY`, `FAL_API_KEY`, `FAL_WEBHOOK_USER_ID`, `ALLOW_MOCK_PROVIDERS=false`.
+2. **Guard de produção:** `Settings` valida no boot `AUTH_PROVIDER=firebase`, `POSTGRES_PASSWORD`, `FIREBASE_PROJECT_ID`, `FIREBASE_SERVICE_ACCOUNT_JSON`, `OPENAI_API_KEY`, `FAL_API_KEY`, `FAL_WEBHOOK_USER_ID`, `ALLOW_MOCK_PROVIDERS=false`. `JWT_SECRET` foi removido (autenticação por ID token do Firebase, sem HMAC próprio).
 3. **Health real:** `check_dependencies()` consulta Postgres (`SELECT 1`) e Redis (`PING`); `/health` devolve `ok`/`degraded` sem alterar `HealthOut`. Healthcheck do Docker exige `ok`.
 4. **Infra:** `docker-compose.yml` com `migrate` → `api` → `worker`/`beat`, volume `media` e portas internas; `docker-compose.prod.yml` como overlay; `backend/Dockerfile` não-root; variáveis F0 no `.env.example`.
 5. **Hardening:** cache JWKS compartilhado com stale fallback, `FAL_WEBHOOK_USER_ID` obrigatório em produção, validação SSRF na URL de origem da imagem, assinatura `ftyp` no MP4 baixado, time limits/retries no Celery e observabilidade opcional via Sentry (lazy).

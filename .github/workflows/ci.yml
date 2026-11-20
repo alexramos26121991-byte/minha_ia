@@ -1,0 +1,141 @@
+# CI do monorepo — validação contínua, sem deploy (ITEM 2 da auditoria).
+# Nenhuma credencial real é necessária: os jobs usam apenas fakes determinísticos.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [master, main]
+
+# Permissão mínima: o workflow apenas lê o código.
+permissions:
+  contents: read
+
+# Evita duas execuções concorrentes para o mesmo ref.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (Python 3.12 + pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Instalar dependências
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: pytest (suíte existente)
+        working-directory: backend
+        run: python -m pytest tests/ -q
+
+  mobile:
+    name: Mobile (Flutter 3.50.0 stable)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Versão fixada: a mesma do pubspec.lock (Dart >=3.13.0, Flutter >=3.47.0).
+      - name: Configurar Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.50.0'
+          channel: stable
+          cache: true
+
+      - name: flutter pub get
+        working-directory: mobile
+        run: flutter pub get
+
+      - name: flutter analyze
+        working-directory: mobile
+        run: flutter analyze
+
+      - name: flutter test
+        working-directory: mobile
+        run: flutter test --reporter compact
+
+  openapi:
+    name: OpenAPI (export x contrato versionado)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Instalar dependências
+        working-directory: backend
+        run: python -m pip install -r requirements.txt
+
+      - name: Exportar e comparar com o contrato oficial
+        working-directory: backend
+        run: |
+          set -euo pipefail
+          # Guarda o contrato commitado antes de gerar: qualquer diferença
+          # falha o job e restaura o arquivo, sem sobrescrever silenciosamente.
+          cp openapi.yaml "$RUNNER_TEMP/openapi.committed.yaml"
+          python export_openapi.py
+          if ! git diff --exit-code -- openapi.yaml; then
+            echo "::error::Contrato gerado difere de backend/openapi.yaml. Atualize o YAML e regenere o cliente Dart no mesmo commit."
+            cp "$RUNNER_TEMP/openapi.committed.yaml" openapi.yaml
+            exit 1
+          fi
+          echo "OK: contrato versionado corresponde ao export da aplicação."
+
+  redocly:
+    name: Redocly lint (CLI 2.82.0)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Sem lockfile npm no repositório, não há cache de dependências apropriado
+      # aqui; a versão do CLI é fixada para manter o resultado reproduzível.
+      - name: Configurar Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Redocly lint
+        run: npx --yes @redocly/cli@2.82.0 lint backend/openapi.yaml
+
+  docker:
+    name: Docker Compose (config, sem subir containers)
+    runs-on: ubuntu-latest
+    env:
+      # Placeholders apenas para a interpolação do overlay de produção.
+      # Não são credenciais reais e não são impressos (config --quiet).
+      POSTGRES_PASSWORD: ci-placeholder-not-a-secret
+      FIREBASE_PROJECT_ID: ci-placeholder
+      FIREBASE_SERVICE_ACCOUNT_JSON: '{}'
+      OPENAI_API_KEY: ci-placeholder
+      FAL_API_KEY: ci-placeholder
+      FAL_WEBHOOK_USER_ID: ci-placeholder
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validar compose base
+        run: docker compose -f docker-compose.yml config --quiet
+
+      - name: Validar mesclagem base + producao
+        run: docker compose -f docker-compose.yml -f docker-compose.prod.yml config --quiet

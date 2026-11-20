@@ -10,11 +10,25 @@ services:
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no .env}
 
+  # migrations/env.py importa app.core.config: o guard de produção também
+  # avalia este serviço, então ele recebe as mesmas variáveis obrigatórias.
+  migrate:
+    environment:
+      APP_ENV: production
+      AUTH_PROVIDER: firebase
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no .env}
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:?Defina FIREBASE_PROJECT_ID no .env}
+      FIREBASE_SERVICE_ACCOUNT_JSON: ${FIREBASE_SERVICE_ACCOUNT_JSON:?Defina FIREBASE_SERVICE_ACCOUNT_JSON no .env}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:?Defina OPENAI_API_KEY no .env}
+      FAL_API_KEY: ${FAL_API_KEY:?Defina FAL_API_KEY no .env}
+      FAL_WEBHOOK_USER_ID: ${FAL_WEBHOOK_USER_ID:?Defina FAL_WEBHOOK_USER_ID no .env}
+      ALLOW_MOCK_PROVIDERS: "false"
+      CREDITS_ENFORCED: "true"
+
   api:
     environment:
       APP_ENV: production
       AUTH_PROVIDER: firebase
-      JWT_SECRET: ${JWT_SECRET:?Defina JWT_SECRET no .env}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no .env}
       FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:?Defina FIREBASE_PROJECT_ID no .env}
       FIREBASE_SERVICE_ACCOUNT_JSON: ${FIREBASE_SERVICE_ACCOUNT_JSON:?Defina FIREBASE_SERVICE_ACCOUNT_JSON no .env}
@@ -28,7 +42,6 @@ services:
     environment:
       APP_ENV: production
       AUTH_PROVIDER: firebase
-      JWT_SECRET: ${JWT_SECRET:?Defina JWT_SECRET no .env}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no .env}
       FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:?Defina FIREBASE_PROJECT_ID no .env}
       FIREBASE_SERVICE_ACCOUNT_JSON: ${FIREBASE_SERVICE_ACCOUNT_JSON:?Defina FIREBASE_SERVICE_ACCOUNT_JSON no .env}
@@ -42,7 +55,6 @@ services:
     environment:
       APP_ENV: production
       AUTH_PROVIDER: firebase
-      JWT_SECRET: ${JWT_SECRET:?Defina JWT_SECRET no .env}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no .env}
       FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:?Defina FIREBASE_PROJECT_ID no .env}
       FIREBASE_SERVICE_ACCOUNT_JSON: ${FIREBASE_SERVICE_ACCOUNT_JSON:?Defina FIREBASE_SERVICE_ACCOUNT_JSON no .env}
