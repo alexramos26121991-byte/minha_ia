@@ -17,7 +17,9 @@ estorna e marca ``failed`` com mensagem segura em pt-BR.
 
 from __future__ import annotations
 
+import ipaddress
 import logging
+import socket
 import time
 import uuid
 from collections.abc import Callable
@@ -66,28 +68,79 @@ def _unavailable(detail: str) -> HTTPException:
     return HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=detail)
 
 
-def _validate_source_image_url(raw: str) -> str:
-    """Bloqueia esquemas e credenciais inesperados na imagem de origem.
+def _resolve_host(host: str) -> list[str]:
+    """Resolve o host para checar para onde a URL aponta (injetável em testes)."""
+    try:
+        infos = socket.getaddrinfo(host, None, type=socket.SOCK_STREAM)
+    except socket.gaierror as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="A imagem de origem deve ser uma URL pública válida.",
+        ) from exc
+    return [str(info[4][0]) for info in infos]
 
-    ``HttpUrl`` já garante http(s); aqui impedimos URLs com usuário/senha e
-    resolves locais em produção (o provedor remoto não conseguiria buscá-las).
+
+def _is_public_address(address: str) -> bool:
+    """Rejeita intervalos privados, loopback, link-local e metadados de cloud."""
+    try:
+        parsed = ipaddress.ip_address(address.split("%", 1)[0])
+    except ValueError:
+        return False
+    return not (
+        parsed.is_private
+        or parsed.is_loopback
+        or parsed.is_link_local
+        or parsed.is_multicast
+        or parsed.is_reserved
+        or parsed.is_unspecified
+    )
+
+
+def _validate_source_image_url(raw: str) -> str:
+    """Valida a imagem de origem antes de enviá-la ao provedor remoto (F0).
+
+    Além do esquema e de credenciais embutidas, bloqueia hosts locais e
+    endereços que resolvem para redes internas — inclusive o endpoint de
+    metadados de cloud (169.254.169.254). A resolução é feita aqui, e não no
+    download, porque quem busca a imagem é o provedor, não o nosso servidor.
     """
     parsed = urlparse(raw)
     host = (parsed.hostname or "").lower()
-    if not host or parsed.username or parsed.password:
+    if parsed.scheme not in {"http", "https"} or not host or parsed.username or parsed.password:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="A imagem de origem deve ser uma URL pública válida.",
         )
-    if parsed.scheme == "http" and host not in _LOCAL_HOSTS:
+    try:
+        port = parsed.port
+    except ValueError:
+        port = None
+    if port not in (None, 80, 443):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="A imagem de origem deve usar uma porta HTTP padrão.",
+        )
+    if parsed.scheme == "http":
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="A imagem de origem precisa usar HTTPS.",
         )
-    if host in _LOCAL_HOSTS and settings.app_env.strip().lower() == "production":
+    if host in _LOCAL_HOSTS or host.endswith(".localhost"):
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Envie a imagem pelo upload do servidor antes de animar.",
+        )
+
+    literal = host.strip("[]")
+    try:
+        ipaddress.ip_address(literal)
+        addresses = [literal]
+    except ValueError:
+        addresses = _resolve_host(host)
+    if not addresses or not all(_is_public_address(address) for address in addresses):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="A imagem de origem aponta para um endereço não público.",
         )
     return raw
 

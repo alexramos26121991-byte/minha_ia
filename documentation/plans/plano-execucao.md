@@ -1,6 +1,6 @@
 # MINHA IA — Plano de Execução Completo
 
-> Status: **Em execução — E0 a E5 concluídas** · Versão: 1.2 · Data: 2026-11-18
+> Status: **Em execução — E0 a E5 e F0 concluídas** · Versão: 1.3 · Data: 2026-11-19
 > Objetivo: transformar a especificação do produto em etapas executáveis, ordenadas e verificáveis.
 > Foco da primeira entrega: **UI + funcional equilibrados** (app navegável com identidade visual real e fluxos reais ponta a ponta).
 
@@ -343,6 +343,33 @@ flutter build apk --debug                                            # OK (fora 
 
 ---
 
+### F0 — Base operacional e honestidade (concluída em 2026-11-19)
+
+- **Dependências:** E0–E5 · **Modelo:** default · **Escolha do usuário:** "Base operacional e honestidade (Recomendado)".
+- **Motivo:** antes de ampliar capacidades (F1–F5), fechar as contradições entre docs/UI e runtime: mock implícito em dev, health estático, compose sem worker/beat e telas com "Em breve" ou checkout falso.
+
+**Entregue:**
+1. **Fail-closed de provedores:** `auto` sempre escolhe OpenAI/fal.ai; sem chave, 503 em qualquer ambiente. Mock exige `ALLOW_MOCK_PROVIDERS=true` e é recusado em produção (`get_image_provider`/`get_video_provider`).
+2. **Guard de produção:** `Settings` valida no boot `AUTH_PROVIDER=firebase`, `JWT_SECRET`, `POSTGRES_PASSWORD`, `FIREBASE_PROJECT_ID`, `FIREBASE_SERVICE_ACCOUNT_JSON`, `OPENAI_API_KEY`, `FAL_API_KEY`, `FAL_WEBHOOK_USER_ID`, `ALLOW_MOCK_PROVIDERS=false`.
+3. **Health real:** `check_dependencies()` consulta Postgres (`SELECT 1`) e Redis (`PING`); `/health` devolve `ok`/`degraded` sem alterar `HealthOut`. Healthcheck do Docker exige `ok`.
+4. **Infra:** `docker-compose.yml` com `migrate` → `api` → `worker`/`beat`, volume `media` e portas internas; `docker-compose.prod.yml` como overlay; `backend/Dockerfile` não-root; variáveis F0 no `.env.example`.
+5. **Hardening:** cache JWKS compartilhado com stale fallback, `FAL_WEBHOOK_USER_ID` obrigatório em produção, validação SSRF na URL de origem da imagem, assinatura `ftyp` no MP4 baixado, time limits/retries no Celery e observabilidade opcional via Sentry (lazy).
+6. **Honestidade mobile:** Home com cards que navegam para rotas reais e `Semantics` (sem "Em breve"); Planos como "Prévia dos planos", sem botão de checkout e preços rotulados "previsto".
+7. **Contrato inalterado:** nenhum endpoint/schema mudou; `openapi.yaml` segue com 21 paths e o cliente Dart não foi regerado.
+
+**Verificação executada em 2026-11-19**
+```powershell
+cd backend; .\.venv\Scripts\python.exe -m pytest tests/ -q; cd ..   # 149 passed
+flutter analyze                                                      # No issues found
+flutter test --reporter compact                                      # 72 testes, verde
+```
+
+**Saída:** configuração incompleta falha cedo; sem chave não existe mais "geração" simulada acidental; health e healthcheck refletem dependências reais; UI não promete recurso indisponível.
+
+**Rollback:** reverters os commits da F0; para voltar ao comportamento anterior de mock implícito, `ALLOW_MOCK_PROVIDERS=true` + provedor `mock` explícito em desenvolvimento.
+
+---
+
 ### E6 — Efeitos, áudio e avatares (feature flags)
 
 - **Dependências:** E5 · **Modelo:** default · **Lane:** A
@@ -481,12 +508,13 @@ cd admin; npm audit --audit-level=high; cd ..
 
 ## 10. Próxima ação imediata
 
-1. **Desbloquear infraestrutura:** Docker/Postgres/Redis, projeto Firebase (`google-services.json`, `GoogleService-Info.plist`, Admin SDK, GCS com CORS) e chaves `OPENAI_API_KEY`/`FAL_API_KEY`. Sem isso, E5 roda com mock em dev e falha 503 em produção.
-2. **Fechar D5/D11 (pagamentos e preços)** e executar **E7** — créditos avulsos e assinaturas (30 / 300 / 1.000 / 3.000).
-3. **E6** (efeitos/áudio/avatares atrás de flags) e **E8** (painel admin), depois **E9** (CI/CD, deploy, LGPD, E2E).
-4. Validar iOS em runner **macOS** + TestFlight — impossível no Windows.
+1. **Desbloquear infraestrutura:** Docker/Postgres/Redis, projeto Firebase (`google-services.json`, `GoogleService-Info.plist`, Admin SDK, GCS com CORS) e chaves `OPENAI_API_KEY`/`FAL_API_KEY`. Sem isso, a F0 falha 503 fechado em qualquer ambiente — por design, sem mock acidental.
+2. **F1 — APIs reais e robustez:** consolidar integrações e recuperação avançada agora que a base operacional está estável.
+3. **Fechar D5/D11 (pagamentos e preços)** e executar **E7** — créditos avulsos e assinaturas (30 / 300 / 1.000 / 3.000).
+4. **E6/E8** (efeitos/áudio/avatares e painel admin), depois **E9** (CI/CD, deploy, LGPD, E2E).
+5. Validar iOS em runner **macOS** + TestFlight — impossível no Windows.
 
-> Granularidade: 10 etapas, 3 lanes paralelos a partir de E3. E0–E5 concluídas; primeira entrega equilibrada entregue na **E5**.
+> Granularidade: 10 etapas + F0, 3 lanes paralelos a partir de E3. E0–E5 e F0 concluídas; primeira entrega equilibrada entregue na **E5**, base operacional honesta consolidada na **F0**.
 
 ---
 

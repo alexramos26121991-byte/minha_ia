@@ -82,23 +82,26 @@ class _HomeScreenState extends State<HomeScreen> {
                       height: 132,
                       child: ListView(
                         scrollDirection: Axis.horizontal,
-                        children: const [
+                        children: [
                           _ModelCard(
                             title: 'Imagem IA',
                             subtitle: 'Realista e criativa',
                             icon: Icons.brush_outlined,
+                            onTap: () => context.go('/imagens'),
                           ),
-                          SizedBox(width: AppSpacing.md),
+                          const SizedBox(width: AppSpacing.md),
                           _ModelCard(
                             title: 'Animar foto',
-                            subtitle: 'Em breve',
+                            subtitle: 'Transforme uma foto em vídeo',
                             icon: Icons.animation_outlined,
+                            onTap: () => context.go('/criar/animar-foto'),
                           ),
-                          SizedBox(width: AppSpacing.md),
+                          const SizedBox(width: AppSpacing.md),
                           _ModelCard(
                             title: 'Vídeo IA',
-                            subtitle: 'Em breve',
+                            subtitle: 'Crie um vídeo a partir de texto',
                             icon: Icons.videocam_outlined,
+                            onTap: () => context.go('/criar/video'),
                           ),
                         ],
                       ),
@@ -231,26 +234,40 @@ class _ModelCard extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.icon,
+    required this.onTap,
   });
 
   final String title;
   final String subtitle;
   final IconData icon;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: 150,
-      child: AppCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: AppColors.glow, size: 28),
-            const Spacer(),
-            Text(title, style: AppTypography.subtitle),
-            const SizedBox(height: 2),
-            Text(subtitle, style: AppTypography.caption),
-          ],
+      child: Semantics(
+        button: true,
+        label: 'Abrir $title: $subtitle',
+        child: AppCard(
+          onTap: onTap,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, color: AppColors.glow, size: 28),
+              const Spacer(),
+              Text(title, style: AppTypography.subtitle),
+              const SizedBox(height: 2),
+              Flexible(
+                child: Text(
+                  subtitle,
+                  style: AppTypography.caption,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

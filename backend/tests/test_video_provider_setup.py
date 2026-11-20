@@ -14,6 +14,7 @@ import time
 
 import httpx
 import pytest
+from fastapi import HTTPException
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from sqlalchemy import create_engine
@@ -22,6 +23,7 @@ from sqlalchemy.pool import StaticPool
 
 from app.core import config as config_module
 from app.generation import deps as deps_module
+from app.generation import webhook as webhook_module
 from app.generation.providers.falai import FalVideoProvider
 from app.generation.providers.mock_video import MockVideoProvider
 from app.generation.providers.video_base import VideoProviderUnavailable
@@ -43,6 +45,7 @@ def _settings(**overrides):
         video_provider="auto",
         openai_api_key="",
         fal_api_key="",
+        allow_mock_providers=False,
     )
     for key, value in overrides.items():
         setattr(base, key, value)
@@ -53,6 +56,11 @@ def _patch_settings(monkeypatch: pytest.MonkeyPatch, **overrides) -> None:
     monkeypatch.setattr(deps_module.settings, "app_env", overrides.pop("app_env", "development"))
     monkeypatch.setattr(deps_module.settings, "video_provider", overrides.pop("video_provider", "auto"))
     monkeypatch.setattr(deps_module.settings, "fal_api_key", overrides.pop("fal_api_key", ""))
+    monkeypatch.setattr(
+        deps_module.settings,
+        "allow_mock_providers",
+        overrides.pop("allow_mock_providers", False),
+    )
     for key, value in overrides.items():
         monkeypatch.setattr(deps_module.settings, key, value)
 
@@ -62,10 +70,34 @@ def _assert_no_settings_leak() -> None:
     assert config_module.Settings(_env_file=None).app_env == "development"
 
 
-def test_auto_sem_chave_em_dev_usa_mock(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_auto_sem_chave_em_dev_falha_fechado(monkeypatch: pytest.MonkeyPatch) -> None:
     _patch_settings(monkeypatch, video_provider="auto", fal_api_key="")
-    provider = deps_module.get_video_provider()
-    assert isinstance(provider, MockVideoProvider)
+    with pytest.raises(HTTPException) as excinfo:
+        deps_module.get_video_provider()
+    assert excinfo.value.status_code == 503
+
+
+def test_mock_exige_opt_in_em_desenvolvimento(monkeypatch: pytest.MonkeyPatch) -> None:
+    _patch_settings(
+        monkeypatch,
+        video_provider="mock",
+        fal_api_key="",
+        allow_mock_providers=False,
+    )
+    with pytest.raises(HTTPException) as excinfo:
+        deps_module.get_video_provider()
+    assert excinfo.value.status_code == 503
+    assert "ALLOW_MOCK_PROVIDERS" in excinfo.value.detail
+
+
+def test_mock_com_opt_in_em_desenvolvimento(monkeypatch: pytest.MonkeyPatch) -> None:
+    _patch_settings(
+        monkeypatch,
+        video_provider="mock",
+        fal_api_key="",
+        allow_mock_providers=True,
+    )
+    assert isinstance(deps_module.get_video_provider(), MockVideoProvider)
 
 
 def test_auto_com_chave_usa_falai(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -198,23 +230,35 @@ def test_webhook_assinatura_de_outra_chave_e_recusada() -> None:
     assert verifier.verify(_signed_headers("req-1", "user-1", timestamp, signature), body) is False
 
 
-def test_webhook_busca_jwks_e_cacheia() -> None:
-    key = Ed25519PrivateKey.generate()
-    body = b"{}"
-    timestamp = str(int(time.time()))
-    signature = _sign(key, body, "req-1", "user-1", timestamp)
+def _jwks_payload(key: Ed25519PrivateKey) -> dict:
+    import base64
+
     public_bytes = key.public_key().public_bytes(
         encoding=serialization.Encoding.Raw,
         format=serialization.PublicFormat.Raw,
     )
-    import base64
+    return {
+        "keys": [
+            {
+                "kty": "OKP",
+                "crv": "Ed25519",
+                "x": base64.urlsafe_b64encode(public_bytes).decode().rstrip("="),
+            }
+        ]
+    }
 
-    jwks = {"keys": [{"kty": "OKP", "crv": "Ed25519", "x": base64.urlsafe_b64encode(public_bytes).decode().rstrip("=")}]}
+
+def test_webhook_busca_jwks_e_cacheia(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(webhook_module, "_JWKS_CACHE", {})
+    key = Ed25519PrivateKey.generate()
+    body = b"{}"
+    timestamp = str(int(time.time()))
+    signature = _sign(key, body, "req-1", "user-1", timestamp)
     calls: list[int] = []
 
     def handler(_: httpx.Request) -> httpx.Response:
         calls.append(1)
-        return httpx.Response(200, json=jwks)
+        return httpx.Response(200, json=_jwks_payload(key))
 
     verifier = FalWebhookVerifier(
         jwks_url="https://rest.fal.ai/.well-known/jwks.json",
@@ -225,6 +269,75 @@ def test_webhook_busca_jwks_e_cacheia() -> None:
     assert verifier.verify(headers, body) is True
     assert verifier.verify(headers, body) is True
     assert len(calls) == 1
+
+
+def test_webhook_cache_e_compartilhado_entre_instancias(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Cada request cria um verificador; o JWKS deve ser buscado uma vez (F0)."""
+    monkeypatch.setattr(webhook_module, "_JWKS_CACHE", {})
+    key = Ed25519PrivateKey.generate()
+    body = b"{}"
+    timestamp = str(int(time.time()))
+    signature = _sign(key, body, "req-1", "user-1", timestamp)
+    calls: list[int] = []
+
+    def handler(_: httpx.Request) -> httpx.Response:
+        calls.append(1)
+        return httpx.Response(200, json=_jwks_payload(key))
+
+    options = {
+        "jwks_url": "https://rest.fal.ai/.well-known/jwks.json",
+        "transport": httpx.MockTransport(handler),
+        "cache_ttl_seconds": 600,
+    }
+    headers = _signed_headers("req-1", "user-1", timestamp, signature)
+    assert FalWebhookVerifier(**options).verify(headers, body) is True
+    assert FalWebhookVerifier(**options).verify(headers, body) is True
+    assert len(calls) == 1
+
+
+def test_webhook_jwks_indisponivel_usa_cache_stale(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(webhook_module, "_JWKS_CACHE", {})
+    key = Ed25519PrivateKey.generate()
+    body = b"{}"
+    timestamp = str(int(time.time()))
+    signature = _sign(key, body, "req-1", "user-1", timestamp)
+    calls: list[int] = []
+
+    def handler(_: httpx.Request) -> httpx.Response:
+        calls.append(1)
+        if len(calls) == 1:
+            return httpx.Response(200, json=_jwks_payload(key))
+        raise httpx.ConnectError("jwks fora do ar")
+
+    url = "https://rest.fal.ai/.well-known/jwks.json"
+    options = {
+        "jwks_url": url,
+        "transport": httpx.MockTransport(handler),
+        "cache_ttl_seconds": 1,
+    }
+    headers = _signed_headers("req-1", "user-1", timestamp, signature)
+    assert FalWebhookVerifier(**options).verify(headers, body) is True
+    # Força a expiração sem depender de sleep: o próximo verify deve tentar
+    # buscar de novo e, falhando, usar as chaves em cache.
+    cached_keys = webhook_module._JWKS_CACHE[url][1]
+    webhook_module._JWKS_CACHE[url] = (time.monotonic() - 100, cached_keys)
+    assert FalWebhookVerifier(**options).verify(headers, body) is True
+    assert len(calls) == 2
+
+
+def test_webhook_verifier_exige_user_id_em_producao(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(deps_module.settings, "app_env", "production")
+    monkeypatch.setattr(deps_module.settings, "fal_webhook_user_id", "")
+    with pytest.raises(HTTPException) as excinfo:
+        deps_module.get_fal_webhook_verifier()
+    assert excinfo.value.status_code == 503
+    assert "FAL_WEBHOOK_USER_ID" in excinfo.value.detail
 
 
 # ---------------------------------------------------------------------------

@@ -3,6 +3,7 @@
 from functools import lru_cache
 from pathlib import Path
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _ROOT = Path(__file__).resolve().parents[2]
@@ -34,6 +35,9 @@ class Settings(BaseSettings):
     # Reservas órfãs (sem commit/estorno) são estornadas após este prazo.
     reconcile_stale_minutes: int = 30
     reconcile_interval_seconds: int = 300
+    # Limites do worker (F0): um job preso não pode ocupar o consumidor para sempre.
+    worker_soft_timeout_seconds: int = 900
+    worker_hard_timeout_seconds: int = 960
     image_generation_enabled: bool = True
     # E5: endpoints de vídeo implementados. Em produção, sem FAL_API_KEY o
     # próprio `get_video_provider` falha com 503 — o flag não entrega mock.
@@ -60,17 +64,20 @@ class Settings(BaseSettings):
     mercadopago_access_token: str = ""
     mercadopago_webhook_secret: str = ""
 
-    # Geração de imagem (E4/D1). `auto` usa OpenAI quando há chave e mock em
-    # desenvolvimento; `mock` é recusado em produção para nunca entregar PNG
-    # sintético ao usuário final.
+    # Geração de imagem (E4/D1). `auto` exige OpenAI: sem OPENAI_API_KEY a
+    # seleção falha com 503 em qualquer ambiente. `mock` precisa de opt-in
+    # explícito (ALLOW_MOCK_PROVIDERS=true) e é recusado em produção para nunca
+    # entregar PNG sintético como se fosse resultado real.
     image_provider: str = "auto"
     openai_image_model: str = "gpt-image-1"
     image_provider_timeout_seconds: float = 30.0
     image_gateway_timeout_seconds: float = 25.0
     image_provider_retries: int = 2
 
-    # Geração de vídeo (E5/D2). `auto` prefere fal.ai quando há chave; mock só
-    # em desenvolvimento. Webhook é preferencial, polling é o fallback.
+    # Geração de vídeo (E5/D2). `auto` exige fal.ai: sem FAL_API_KEY a seleção
+    # falha com 503 em qualquer ambiente. `mock` também depende de opt-in
+    # explícito e nunca roda em produção. Webhook é preferencial; polling é
+    # o fallback quando FAL_WEBHOOK_URL não está configurada.
     video_provider: str = "auto"
     fal_video_text_model: str = "fal-ai/kling-video/v3/pro/text-to-video"
     fal_video_image_model: str = "fal-ai/kling-video/v3/pro/image-to-video"
@@ -92,12 +99,68 @@ class Settings(BaseSettings):
     media_root: str = str(_ROOT / "media")
     media_url_prefix: str = "/media"
 
+    # F0 — honestidade operacional. Mocks de mídia NÃO são o modo padrão do
+    # ambiente de desenvolvimento: precisam ser ligados explicitamente e nunca
+    # funcionam em produção. Sentry só é ativado quando a DSN existe.
+    allow_mock_providers: bool = False
+    sentry_dsn: str = ""
+    sentry_traces_sample_rate: float = 0.0
+
     model_config = SettingsConfigDict(
         env_file=str(_ROOT.parent / ".env"),
         env_file_encoding="utf-8",
         extra="ignore",
         case_sensitive=False,
     )
+
+    @model_validator(mode="after")
+    def _require_production_configuration(self) -> "Settings":
+        """Falha na inicialização se produção estiver incompleta ou insegura.
+
+        O objetivo é impedir que um deploy com senhas fracas, auth de
+        desenvolvimento, provedores simulados ou webhook sem identidade
+        conhecida chegue a aceitar usuários reais. Em desenvolvimento os
+        defaults permanecem permissivos para permitir testes sem credenciais.
+        """
+        if self.app_env.strip().lower() != "production":
+            return self
+
+        weak_values = {
+            "",
+            "trocar",
+            "changeme",
+            "change-me",
+            "secret",
+            "password",
+            "admin",
+        }
+        problems: list[str] = []
+        if self.auth_provider.strip().lower() != "firebase":
+            problems.append("AUTH_PROVIDER=firebase é obrigatório")
+        if (
+            self.jwt_secret.strip().lower() in weak_values
+            or len(self.jwt_secret.strip()) < 32
+        ):
+            problems.append("JWT_SECRET precisa de ao menos 32 caracteres e não pode ser padrão")
+        if self.postgres_password.strip().lower() in weak_values:
+            problems.append("POSTGRES_PASSWORD não pode ser um valor padrão")
+        if not self.firebase_project_id.strip():
+            problems.append("FIREBASE_PROJECT_ID é obrigatório")
+        if not self.firebase_service_account_json.strip():
+            problems.append("FIREBASE_SERVICE_ACCOUNT_JSON é obrigatório")
+        if self.allow_mock_providers:
+            problems.append("ALLOW_MOCK_PROVIDERS deve ser false")
+        if not self.openai_api_key.strip():
+            problems.append("OPENAI_API_KEY é obrigatório")
+        if not self.fal_api_key.strip():
+            problems.append("FAL_API_KEY é obrigatório")
+        if not self.fal_webhook_user_id.strip():
+            problems.append("FAL_WEBHOOK_USER_ID é obrigatório")
+        if problems:
+            raise ValueError(
+                "Configuração de produção inválida: " + "; ".join(problems)
+            )
+        return self
 
     @property
     def database_url(self) -> str:

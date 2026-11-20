@@ -13,6 +13,8 @@ PyYAML>=6.0,<7.0
 cryptography>=42,<60
 # Upload multipart de imagens para animar foto (E5)
 python-multipart>=0.0.9,<1.0
+# Observabilidade (F0): inicializada apenas quando SENTRY_DSN existe
+sentry-sdk[fastapi]>=2,<3
 # Testes
 pytest>=8.0,<10.0
 pytest-cov>=5.0,<7.0

@@ -175,12 +175,38 @@ def test_selecao_auto_usa_openai_quando_ha_chave(monkeypatch: pytest.MonkeyPatch
     assert isinstance(get_image_provider(), OpenAIImageProvider)
 
 
-def test_selecao_auto_usa_mock_sem_chave_em_desenvolvimento(
+def test_selecao_auto_sem_chave_falha_fechado_em_desenvolvimento(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(settings, "image_provider", "auto")
     monkeypatch.setattr(settings, "openai_api_key", "")
     monkeypatch.setattr(settings, "app_env", "development")
+    monkeypatch.setattr(settings, "allow_mock_providers", False)
+
+    with pytest.raises(HTTPException) as excinfo:
+        get_image_provider()
+    assert excinfo.value.status_code == 503
+
+
+def test_selecao_mock_exige_opt_in_em_desenvolvimento(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "image_provider", "mock")
+    monkeypatch.setattr(settings, "app_env", "development")
+    monkeypatch.setattr(settings, "allow_mock_providers", False)
+
+    with pytest.raises(HTTPException) as excinfo:
+        get_image_provider()
+    assert excinfo.value.status_code == 503
+    assert "ALLOW_MOCK_PROVIDERS" in excinfo.value.detail
+
+
+def test_selecao_mock_com_opt_in_em_desenvolvimento(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "image_provider", "mock")
+    monkeypatch.setattr(settings, "app_env", "development")
+    monkeypatch.setattr(settings, "allow_mock_providers", True)
 
     assert isinstance(get_image_provider(), MockImageProvider)
 

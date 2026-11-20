@@ -3,10 +3,9 @@ import 'package:material_ui/material_ui.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
-import '../../widgets/app_button.dart';
 import '../../widgets/app_card.dart';
 
-/// Tela auxiliar — Planos.
+/// Tela auxiliar — Planos (prévia do catálogo; compra indisponível nesta versão).
 class SubscriptionScreen extends StatefulWidget {
   const SubscriptionScreen({super.key});
 
@@ -15,11 +14,12 @@ class SubscriptionScreen extends StatefulWidget {
 }
 
 class _SubscriptionScreenState extends State<SubscriptionScreen> {
+  /// Catálogo ilustrativo: os valores são prévia, não cobrança disponível.
   static const _plans = [
-    ('Gratuito', '30 créditos', 'R\$ 0,00', false),
-    ('Básico', '300 créditos', 'R\$ 29,90', false),
-    ('Pro', '1.000 créditos', 'R\$ 89,90', true),
-    ('Premium', '3.000 créditos', 'R\$ 249,90', false),
+    ('Gratuito', '30 créditos', 'R\$ 0,00 · ativo', false),
+    ('Básico', '300 créditos', 'R\$ 29,90 · previsto', false),
+    ('Pro', '1.000 créditos', 'R\$ 89,90 · previsto', true),
+    ('Premium', '3.000 créditos', 'R\$ 249,90 · previsto', false),
   ];
 
   int _selected = 0;
@@ -31,9 +31,40 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       body: ListView(
         padding: AppSpacing.screen,
         children: [
-          Text('Escolha o plano ideal', style: AppTypography.title),
+          Text('Prévia dos planos', style: AppTypography.title),
           const SizedBox(height: AppSpacing.sm),
-          Text('Mais créditos para criar sem limites.', style: AppTypography.body),
+          Text(
+            'Os planos e valores abaixo são apenas uma prévia do catálogo '
+            'previsto. Nenhuma cobrança é feita nesta versão.',
+            style: AppTypography.body,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Semantics(
+            container: true,
+            child: Container(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: AppColors.warning.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                border: Border.all(color: AppColors.warning.withValues(alpha: 0.4)),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.info_outline, color: AppColors.warning, size: 20),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      'Planos pagos e pagamentos ainda não estão disponíveis '
+                      'nesta versão. Os créditos do plano gratuito já estão '
+                      'ativos e podem ser usados normalmente.',
+                      style: AppTypography.body,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
           const SizedBox(height: AppSpacing.xl),
           for (final plan in _plans)
             Padding(
@@ -53,24 +84,11 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                         ],
                       ),
                     ),
-                    Text(plan.$3, style: AppTypography.subtitle),
+                    Text(plan.$3, style: AppTypography.caption),
                   ],
                 ),
               ),
             ),
-          const SizedBox(height: AppSpacing.lg),
-          AppButton(
-            label: 'Continuar',
-            icon: Icons.arrow_forward,
-            gradient: true,
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Pagamentos disponíveis na próxima versão.'),
-                ),
-              );
-            },
-          ),
         ],
       ),
     );

@@ -27,6 +27,11 @@ HEADER_TIMESTAMP = "x-fal-webhook-timestamp"
 HEADER_SIGNATURE = "x-fal-webhook-signature"
 _REQUIRED = (HEADER_REQUEST_ID, HEADER_USER_ID, HEADER_TIMESTAMP, HEADER_SIGNATURE)
 
+# Cache compartilhado por instância: o FastAPI cria um verificador por request,
+# e sem isso cada webhook baixaria o JWKS novamente. Chaves antigas continuam
+# válidas por um curto período se o provedor estiver temporariamente fora.
+_JWKS_CACHE: dict[str, tuple[float, list[bytes]]] = {}
+
 
 class FalWebhookVerifier:
     """Valida assinatura ED25519 de webhooks do fal.ai."""
@@ -48,8 +53,6 @@ class FalWebhookVerifier:
         self.expected_user_id = expected_user_id
         self._transport = transport
         self._pinned_keys = pinned_keys
-        self._cached_keys: list[bytes] = []
-        self._cached_at: float | None = None
 
     def _fetch_keys(self) -> list[bytes]:
         with httpx.Client(timeout=10.0, transport=self._transport) as client:
@@ -72,14 +75,18 @@ class FalWebhookVerifier:
         if self._pinned_keys is not None:
             return self._pinned_keys
         now = time.monotonic()
-        if self._cached_at is None or now - self._cached_at >= self.cache_ttl_seconds:
-            try:
-                self._cached_keys = self._fetch_keys()
-                self._cached_at = now
-            except (httpx.HTTPError, ValueError) as exc:
-                logger.warning("Falha ao buscar JWKS do fal: %s", type(exc).__name__)
-                return []
-        return self._cached_keys
+        cached = _JWKS_CACHE.get(self.jwks_url)
+        if cached is not None and now - cached[0] < self.cache_ttl_seconds:
+            return cached[1]
+        try:
+            keys = self._fetch_keys()
+        except (httpx.HTTPError, ValueError) as exc:
+            logger.warning("Falha ao buscar JWKS do fal: %s", type(exc).__name__)
+            # Serve o último conjunto conhecido em vez de rejeitar entregas
+            # legítimas durante uma indisponibilidade do endpoint de chaves.
+            return cached[1] if cached is not None else []
+        _JWKS_CACHE[self.jwks_url] = (now, keys)
+        return keys
 
     def verify(self, headers: Mapping[str, str], body: bytes) -> bool:
         """Devolve ``True`` somente para uma entrega autêntica e recente."""

@@ -27,25 +27,39 @@ def _is_production() -> bool:
     return settings.app_env.strip().lower() == "production"
 
 
+def _mock_allowed(provider_label: str) -> None:
+    """Mídia simulada é opt-in explícito e nunca chega a produção (F0)."""
+    if _is_production():
+        raise _unavailable(f"Provedor de {provider_label} não configurado para produção.")
+    if not settings.allow_mock_providers:
+        raise _unavailable(
+            "A geração com mídia simulada está desativada. Configure a chave do "
+            "provedor real ou habilite ALLOW_MOCK_PROVIDERS apenas em desenvolvimento."
+        )
+
+
 def get_image_provider() -> ImageProvider:
     """Seleciona o provedor de imagem (D1: OpenAI GPT Image).
 
-    ``auto`` prefere OpenAI quando a chave existe; sem chave, só permite o mock
-    fora de produção. Em produção a ausência de chave falha fechado com 503.
+    F0: ``auto`` escolhe **somente** um provedor real. Sem chave, falha 503 em
+    qualquer ambiente — nenhum PNG sintético é entregue como geração real. O
+    mock existe apenas para testes explícitos com ``ALLOW_MOCK_PROVIDERS=true``
+    e fora de produção.
     """
     mode = settings.image_provider.strip().lower()
     if mode not in _IMAGE_PROVIDERS:
         raise _unavailable("Provedor de imagem inválido no servidor.")
 
     if mode == "auto":
-        mode = "openai" if settings.openai_api_key.strip() else "mock"
+        mode = "openai"
 
     if mode == "mock":
-        if _is_production():
-            raise _unavailable("Provedor de imagem não configurado para produção.")
+        _mock_allowed("imagem")
         return MockImageProvider()
 
     if not settings.openai_api_key.strip():
+        if _is_production():
+            raise _unavailable("Provedor de imagem não configurado para produção.")
         raise _unavailable("OPENAI_API_KEY não configurada no servidor.")
 
     return OpenAIImageProvider(
@@ -59,22 +73,24 @@ def get_image_provider() -> ImageProvider:
 def get_video_provider() -> VideoProvider:
     """Seleciona o provedor de vídeo (D2: fal.ai + Kling).
 
-    Injetado nas rotas de vídeo e no worker (E5). A regra é a mesma da imagem:
-    mock nunca chega a produção.
+    Mesma regra da imagem (F0): ``auto`` nunca resolve para mock; sem chave a
+    rota falha 503 em dev e em produção. O mock é ferramenta de teste, não
+    resultado de geração.
     """
     mode = settings.video_provider.strip().lower()
     if mode not in _VIDEO_PROVIDERS:
         raise _unavailable("Provedor de vídeo inválido no servidor.")
 
     if mode == "auto":
-        mode = "falai" if settings.fal_api_key.strip() else "mock"
+        mode = "falai"
 
     if mode == "mock":
-        if _is_production():
-            raise _unavailable("Provedor de vídeo não configurado para produção.")
+        _mock_allowed("vídeo")
         return MockVideoProvider()
 
     if not settings.fal_api_key.strip():
+        if _is_production():
+            raise _unavailable("Provedor de vídeo não configurado para produção.")
         raise _unavailable("FAL_API_KEY não configurada no servidor.")
 
     return FalVideoProvider(
@@ -88,7 +104,14 @@ def get_video_provider() -> VideoProvider:
 
 
 def get_fal_webhook_verifier() -> FalWebhookVerifier:
-    """Verificador de assinatura do webhook do fal.ai (JWKS Ed25519)."""
+    """Verificador de assinatura do webhook do fal.ai (JWKS Ed25519).
+
+    Em produção, aceitar qualquer ``user_id`` permitiria que outra conta do
+    fal.ai enviasse entregas assinadas para o nosso endpoint. Por isso a
+    identidade esperada é obrigatória (F0).
+    """
+    if _is_production() and not settings.fal_webhook_user_id.strip():
+        raise _unavailable("FAL_WEBHOOK_USER_ID não configurada no servidor.")
     return FalWebhookVerifier(
         jwks_url=settings.fal_jwks_url,
         leeway_seconds=settings.webhook_signature_leeway_seconds,

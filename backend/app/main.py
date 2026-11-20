@@ -4,6 +4,7 @@ O OpenAPI gerado aqui é a fonte do contrato versionado em `backend/openapi.yaml
 e do cliente Dart em `mobile/lib/services/api/generated/`.
 """
 
+import logging
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -14,6 +15,8 @@ from app import __version__
 from app.admin.router import router as admin_router
 from app.auth.router import router as auth_router
 from app.core.config import settings
+from app.core.health import check_dependencies, overall_status
+from app.core.observability import setup_observability
 from app.core.schemas import HealthOut
 from app.credits.router import router as credits_router
 from app.generation.router import router as generation_router
@@ -21,6 +24,10 @@ from app.generation.webhook_router import router as generation_webhook_router
 from app.payments.router import router as payments_router
 from app.plans.router import router as plans_router
 from app.users.router import router as users_router
+
+logger = logging.getLogger(__name__)
+
+setup_observability()
 
 TAGS = [
     {"name": "system", "description": "Saúde do serviço."},
@@ -55,8 +62,12 @@ app = FastAPI(
     summary="Verificação de saúde (liveness/readiness)",
 )
 def health() -> HealthOut:
+    checks = check_dependencies()
+    status_value = overall_status(checks)
+    if status_value != "ok":
+        logger.warning("Health degradado: %s", checks)
     return HealthOut(
-        status="ok",
+        status=status_value,
         app="minha-ia",
         version=__version__,
         environment=settings.app_env,

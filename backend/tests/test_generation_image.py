@@ -172,11 +172,19 @@ def _kinds(Session, user_id) -> list[str]:
     session = Session()
     try:
         rows = session.execute(
-            select(CreditLedgerEntry.kind)
+            select(CreditLedgerEntry.kind, CreditLedgerEntry.created_at)
             .where(CreditLedgerEntry.user_id == user_id)
             .order_by(CreditLedgerEntry.created_at, CreditLedgerEntry.id)
-        ).scalars().all()
-        return list(rows)
+        ).all()
+        # No Windows, datetime.now() tem resolução de ~1-15ms: grant e reserve
+        # podem dividir o mesmo created_at. O desempate por sequência lógica só
+        # atua quando os timestamps são idênticos; ordens cronológicas reais
+        # (ex.: reserve antes do grant) continuam sendo detectadas.
+        sequence = {"grant": 0, "reserve": 1, "commit": 2, "refund": 2, "adjust": 2}
+        return [
+            kind
+            for kind, _ in sorted(rows, key=lambda row: (row[1], sequence.get(row[0], 3)))
+        ]
     finally:
         session.close()
 

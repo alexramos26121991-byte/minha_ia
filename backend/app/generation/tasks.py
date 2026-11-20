@@ -24,7 +24,14 @@ def _worker_dependencies():
     return get_video_provider(), get_media_storage()
 
 
-@celery_app.task(name="generations.process_video", bind=True, max_retries=2)
+@celery_app.task(
+    name="generations.process_video",
+    bind=True,
+    max_retries=2,
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    retry_jitter=True,
+)
 def process_video_generation_task(self, generation_id: str) -> str:
     """Executa o job de vídeo com polling e confirma/estorna créditos."""
     from app.core.database import SessionLocal
@@ -39,7 +46,13 @@ def process_video_generation_task(self, generation_id: str) -> str:
     return result.status
 
 
-@celery_app.task(name="generations.process_fal_webhook")
+@celery_app.task(
+    name="generations.process_fal_webhook",
+    max_retries=3,
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    retry_jitter=True,
+)
 def process_fal_webhook_task(request_id: str, payload: dict) -> bool:
     """Finaliza um job já concluído, a partir de um webhook verificado."""
     from app.core.database import SessionLocal

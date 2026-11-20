@@ -264,6 +264,25 @@ def test_result_recusa_job_com_erro() -> None:
         provider.result(job)
 
 
+def test_result_recusa_conteudo_que_nao_e_mp4() -> None:
+    """Um HTML de erro com content-type video/mp4 não pode virar mídia final."""
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.host == "v3.fal.media":
+            return httpx.Response(
+                200,
+                content=b"<html>erro temporario</html>",
+                headers={"content-type": "video/mp4"},
+            )
+        return httpx.Response(200, json={"video": _MEDIA_URL})
+
+    provider = _provider(handler)
+    job = _submit(_provider(lambda _: httpx.Response(200, json=_submit_payload())))
+
+    with pytest.raises(VideoProviderUnavailable, match="MP4 válido"):
+        provider.result(job)
+
+
 def test_result_recusa_video_vazio() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         if request.url.host == "v3.fal.media":

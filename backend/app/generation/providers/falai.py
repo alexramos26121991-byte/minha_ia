@@ -269,8 +269,13 @@ class FalVideoProvider(VideoProvider):
 
         if not chunks:
             raise VideoProviderUnavailable("O provedor devolveu um vídeo vazio.")
+        content = b"".join(chunks)
+        # O content-type vem do provedor; o magic bytes é a verdade do arquivo.
+        # Um HTML de erro salvo como .mp4 quebraria a galeria do usuário.
+        if len(content) < 12 or content[4:8] != b"ftyp":
+            raise VideoProviderUnavailable("O provedor não devolveu um vídeo MP4 válido.")
         return GeneratedVideo(
-            content=b"".join(chunks),
+            content=content,
             media_type=content_type,
             provider=self.name,
             extension="mp4",

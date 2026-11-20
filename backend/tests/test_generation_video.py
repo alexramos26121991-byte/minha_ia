@@ -22,6 +22,7 @@ from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
+import app.generation.video_service as video_service_module
 from app.admin.model import CostConfig
 from app.credits.model import CreditLedgerEntry
 from app.credits.service import CreditService
@@ -142,7 +143,14 @@ class Ctx:
 
 
 @pytest.fixture()
-def ctx(tmp_path):
+def ctx(tmp_path, monkeypatch: pytest.MonkeyPatch):
+    # exemplo.test não resolve na máquina de teste: a validação SSRF usa
+    # _resolve_host, que é injetado aqui para devolver um IP público fictício.
+    monkeypatch.setattr(
+        video_service_module,
+        "_resolve_host",
+        lambda host: ["93.184.216.34"],
+    )
     engine = create_engine(
         "sqlite://",
         poolclass=StaticPool,
@@ -270,11 +278,19 @@ def _kinds(Session, user_id) -> list[str]:
     session = Session()
     try:
         rows = session.execute(
-            select(CreditLedgerEntry.kind)
+            select(CreditLedgerEntry.kind, CreditLedgerEntry.created_at)
             .where(CreditLedgerEntry.user_id == user_id)
             .order_by(CreditLedgerEntry.created_at, CreditLedgerEntry.id)
-        ).scalars().all()
-        return list(rows)
+        ).all()
+        # No Windows, datetime.now() tem resolução de ~1-15ms: grant e reserve
+        # podem dividir o mesmo created_at. O desempate por sequência lógica só
+        # atua quando os timestamps são idênticos; ordens cronológicas reais
+        # (ex.: reserve antes do grant) continuam sendo detectadas.
+        sequence = {"grant": 0, "reserve": 1, "commit": 2, "refund": 2, "adjust": 2}
+        return [
+            kind
+            for kind, _ in sorted(rows, key=lambda row: (row[1], sequence.get(row[0], 3)))
+        ]
     finally:
         session.close()
 
@@ -397,6 +413,45 @@ def test_url_de_origem_https_e_validada(ctx: Ctx) -> None:
     )
     assert com_credencial.status_code == 422, com_credencial.text
     assert len(ctx.dispatched) == 1
+
+
+@pytest.mark.parametrize(
+    ("key", "url"),
+    [
+        ("loopback", "https://127.0.0.1/foto.png"),
+        ("privada", "https://10.0.0.5/foto.png"),
+        ("metadados", "https://169.254.169.254/latest/meta-data/"),
+        ("localhost", "https://localhost/foto.png"),
+        ("porta", "https://exemplo.test:8443/foto.png"),
+    ],
+)
+def test_url_de_origem_bloqueia_enderecos_nao_publicos(
+    ctx: Ctx, key: str, url: str
+) -> None:
+    response = ctx.client.post(
+        "/generations/animate-photo",
+        json={**_animate_payload(f"key-ssrf-{key}"), "image_url": url},
+        headers=AUTH,
+    )
+    assert response.status_code == 422, response.text
+    assert ctx.dispatched == []
+
+
+def test_url_de_origem_bloqueia_host_que_resolve_para_rede_interna(
+    monkeypatch: pytest.MonkeyPatch, ctx: Ctx
+) -> None:
+    monkeypatch.setattr(
+        video_service_module,
+        "_resolve_host",
+        lambda host: ["192.168.1.10"],
+    )
+    response = ctx.client.post(
+        "/generations/animate-photo",
+        json=_animate_payload("key-ssrf-resolve"),
+        headers=AUTH,
+    )
+    assert response.status_code == 422, response.text
+    assert ctx.dispatched == []
 
 
 # ---------------------------------------------------------------------------

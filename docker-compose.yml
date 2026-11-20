@@ -1,19 +1,50 @@
 name: minha-ia
 
+# F0 — base operacional. Postgres e Redis ficam somente na rede interna;
+# migrations, worker e beat sobem junto com a API e compartilham o volume de
+# mídia. Para produção, use também `docker-compose.prod.yml` (segredos
+# obrigatórios e APP_ENV=production).
+
+x-backend-env: &backend-env
+  APP_ENV: ${APP_ENV:-development}
+  API_BASE_URL: ${API_BASE_URL:-http://localhost:8000}
+  POSTGRES_HOST: postgres
+  POSTGRES_PORT: 5432
+  POSTGRES_DB: ${POSTGRES_DB:-minha_ia}
+  POSTGRES_USER: ${POSTGRES_USER:-minha_ia}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-trocar}
+  REDIS_URL: redis://redis:6379/0
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
+  JWT_SECRET: ${JWT_SECRET:-trocar}
+  CREDITS_ENFORCED: ${CREDITS_ENFORCED:-true}
+  AUTH_PROVIDER: ${AUTH_PROVIDER:-dev}
+  FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-}
+  FIREBASE_SERVICE_ACCOUNT_JSON: ${FIREBASE_SERVICE_ACCOUNT_JSON:-}
+  IMAGE_PROVIDER: ${IMAGE_PROVIDER:-auto}
+  OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+  VIDEO_PROVIDER: ${VIDEO_PROVIDER:-auto}
+  FAL_API_KEY: ${FAL_API_KEY:-}
+  FAL_WEBHOOK_URL: ${FAL_WEBHOOK_URL:-}
+  FAL_WEBHOOK_USER_ID: ${FAL_WEBHOOK_USER_ID:-}
+  ALLOW_MOCK_PROVIDERS: ${ALLOW_MOCK_PROVIDERS:-false}
+  MEDIA_ROOT: /app/media
+  SENTRY_DSN: ${SENTRY_DSN:-}
+  SENTRY_TRACES_SAMPLE_RATE: ${SENTRY_TRACES_SAMPLE_RATE:-0}
+  WORKER_SOFT_TIMEOUT_SECONDS: ${WORKER_SOFT_TIMEOUT_SECONDS:-900}
+  WORKER_HARD_TIMEOUT_SECONDS: ${WORKER_HARD_TIMEOUT_SECONDS:-960}
+
 services:
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: minha_ia
-      POSTGRES_USER: minha_ia
-      POSTGRES_PASSWORD: trocar
-    ports:
-      - "5432:5432"
+      POSTGRES_DB: ${POSTGRES_DB:-minha_ia}
+      POSTGRES_USER: ${POSTGRES_USER:-minha_ia}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-trocar}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U minha_ia -d minha_ia"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-minha_ia} -d ${POSTGRES_DB:-minha_ia}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -21,8 +52,7 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
-    ports:
-      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
     volumes:
       - redisdata:/data
     healthcheck:
@@ -31,27 +61,59 @@ services:
       timeout: 5s
       retries: 5
 
+  migrate:
+    build: ./backend
+    restart: "no"
+    environment: *backend-env
+    command: ["alembic", "upgrade", "head"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   api:
     build: ./backend
     restart: unless-stopped
+    environment: *backend-env
     ports:
-      - "8000:8000"
-    environment:
-      APP_ENV: development
-      API_BASE_URL: http://localhost:8000
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: 5432
-      POSTGRES_DB: minha_ia
-      POSTGRES_USER: minha_ia
-      POSTGRES_PASSWORD: trocar
-      REDIS_URL: redis://redis:6379/0
-      LOG_LEVEL: INFO
+      # Em produção, defina API_HOST_PORT=127.0.0.1:8000 no .env e use proxy reverso.
+      - "${API_HOST_PORT:-8000}:8000"
+    volumes:
+      - media:/app/media
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  worker:
+    build: ./backend
+    restart: unless-stopped
+    environment: *backend-env
+    command: ["celery", "-A", "app.core.celery_app:celery_app", "worker", "--loglevel=info", "--concurrency=2"]
+    volumes:
+      - media:/app/media
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  beat:
+    build: ./backend
+    restart: unless-stopped
+    environment: *backend-env
+    command: ["celery", "-A", "app.core.celery_app:celery_app", "beat", "--loglevel=info"]
+    depends_on:
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
 volumes:
   pgdata:
   redisdata:
+  media:

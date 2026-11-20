@@ -2,6 +2,7 @@
 
 - Status: **Aceito (provisório — preços aguardando confirmação)**
 - Data: 2026-11-17
+- Atualização: 2026-11-19 — F0: a tela de planos do app virou "Prévia dos planos", sem checkout simulado e com preços rotulados como previstos; os preços abaixo seguem **provisórios** e os endpoints de pagamento permanecem 501 até a E7.
 
 ## Contexto
 Monetização por assinatura mensal e pacotes avulsos de créditos. público principal no Brasil, onde Pix é essencial.
@@ -37,5 +38,6 @@ Pacote avulso: **100 créditos por R$ 9,90**.
 
 ## Consequências
 - Planos são semeados no banco na E1c.
-- A tela de planos no app consome os planos do backend, não hardcoded.
+- A tela de planos no app consome os planos do backend, não hardcoded. Como o checkout real ainda não existe (E7 pendente), a F0 removeu o botão de pagamento simulado: a tela mostra "Prévia dos planos", avisa que a contratação está indisponível e marca os valores como "previsto".
 - Webhooks exigem segredo configurado no `.env`.
+- D5 (provedor/pagamento efetivo) e D11 (preços finais) continuam em aberto; nenhuma cobrança é realizada antes da E7.

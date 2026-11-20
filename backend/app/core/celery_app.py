@@ -20,6 +20,12 @@ celery_app.conf.update(
     task_track_started=True,
     task_acks_late=True,
     worker_prefetch_multiplier=1,
+    # F0: time limit real + reconexão na subida + expiração do resultado.
+    broker_connection_retry_on_startup=True,
+    task_soft_time_limit=settings.worker_soft_timeout_seconds,
+    task_time_limit=settings.worker_hard_timeout_seconds,
+    task_default_retry_delay=5,
+    result_expires=24 * 3600,
     beat_schedule={
         "reconcile-orphan-reservations": {
             "task": "credits.reconcile_orphan_reservations",
