@@ -18,7 +18,9 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
-RUN mkdir -p /app/media && chown -R app:app /app/media
+# /app/media: upload de midia; /app/beat: estado persistente do agendador Celery.
+# Ambos precisam ser gravaveis pelo usuario sem privilegio (uid 10001).
+RUN mkdir -p /app/media /app/beat && chown -R app:app /app/media /app/beat
 
 USER app
 

@@ -6,7 +6,8 @@ SQLAlchemy>=2.0,<3.0
 alembic>=1.13,<2.0
 psycopg[binary]>=3.2,<4.0
 celery>=5.4,<6.0
-redis>=5.0,<6.0
+# kombu 5.7 (trazido por celery 5.7) exige redis-py >= 6.1.0.
+redis>=6.1,<7.0
 firebase-admin>=6.5,<7.0
 PyYAML>=6.0,<7.0
 # Verificação ED25519 dos webhooks do fal.ai (D2)

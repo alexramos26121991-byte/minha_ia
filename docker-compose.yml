@@ -132,10 +132,13 @@ services:
     build: ./backend
     restart: unless-stopped
     environment: *backend-env
-    command: ["celery", "-A", "app.core.celery_app:celery_app", "beat", "--loglevel=info"]
+    # O schedule DB nao pode ficar em /app (root-only): usar diretorio proprio.
+    command: ["celery", "-A", "app.core.celery_app:celery_app", "beat", "--loglevel=info", "--schedule", "/app/beat/celerybeat-schedule"]
     # A imagem herda um HEALTHCHECK HTTP da API; o beat não expõe /health.
     healthcheck:
       disable: true
+    volumes:
+      - beatdata:/app/beat
     depends_on:
       redis:
         condition: service_healthy
@@ -146,3 +149,4 @@ volumes:
   pgdata:
   redisdata:
   media:
+  beatdata:
