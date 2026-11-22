@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
+import '../../l10n/pt_br.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
@@ -16,10 +17,10 @@ class SubscriptionScreen extends StatefulWidget {
 class _SubscriptionScreenState extends State<SubscriptionScreen> {
   /// Catálogo ilustrativo: os valores são prévia, não cobrança disponível.
   static const _plans = [
-    ('Gratuito', '30 créditos', 'R\$ 0,00 · ativo', false),
-    ('Básico', '300 créditos', 'R\$ 29,90 · previsto', false),
-    ('Pro', '1.000 créditos', 'R\$ 89,90 · previsto', true),
-    ('Premium', '3.000 créditos', 'R\$ 249,90 · previsto', false),
+    ('Gratuito', '30 créditos', 0.0, 'ativo', false),
+    ('Básico', '300 créditos', 29.90, 'previsto', false),
+    ('Pro', '1.000 créditos', 89.90, 'previsto', true),
+    ('Premium', '3.000 créditos', 249.90, 'previsto', false),
   ];
 
   int _selected = 0;
@@ -84,7 +85,10 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                         ],
                       ),
                     ),
-                    Text(plan.$3, style: AppTypography.caption),
+                    Text(
+                      '${formatarReais(plan.$3)} · ${plan.$4}',
+                      style: AppTypography.caption,
+                    ),
                   ],
                 ),
               ),

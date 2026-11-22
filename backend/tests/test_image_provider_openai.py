@@ -15,6 +15,7 @@ from fastapi import HTTPException
 from app.core.config import settings
 from app.generation.deps import get_image_provider
 from app.generation.providers.base import ImageProviderTimeout, ImageProviderUnavailable
+from app.generation.providers.language import INSTRUCAO_PT_BR
 from app.generation.providers.mock import MockImageProvider
 from app.generation.providers.openai import OpenAIImageProvider
 
@@ -65,7 +66,7 @@ def test_openai_mounta_request_e_devolve_png() -> None:
         "content_type": "application/json",
         "body": {
             "model": "gpt-image-1",
-            "prompt": "um gato. Estilo: cyberpunk",
+            "prompt": f"um gato. Estilo: cyberpunk. {INSTRUCAO_PT_BR}",
             "n": 1,
             "size": "1024x1024",
         },

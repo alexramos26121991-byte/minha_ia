@@ -16,6 +16,7 @@ from app.generation.providers.base import (
     ImageProviderTimeout,
     ImageProviderUnavailable,
 )
+from app.generation.providers.language import compor_prompt_imagem
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +65,7 @@ class OpenAIImageProvider(ImageProvider):
 
         body: dict[str, object] = {
             "model": self.model,
-            "prompt": prompt if not style else f"{prompt}. Estilo: {style}",
+            "prompt": compor_prompt_imagem(prompt, style),
             "n": 1,
             "size": size,
         }

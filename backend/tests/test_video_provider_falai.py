@@ -12,6 +12,7 @@ import httpx
 import pytest
 
 from app.generation.providers.falai import FalVideoProvider
+from app.generation.providers.language import INSTRUCAO_PT_BR
 from app.generation.providers.video_base import (
     VideoJobFailed,
     VideoOperation,
@@ -76,7 +77,7 @@ def test_submit_texto_monta_request_e_devolve_job() -> None:
     assert seen["url"] == "https://queue.fal.run/fal-ai/kling-video/v3/pro/text-to-video"
     assert seen["auth"] == "Key key-teste"
     assert seen["body"] == {
-        "prompt": "um dragão sobre a cidade",
+        "prompt": f"um dragão sobre a cidade. {INSTRUCAO_PT_BR}",
         "duration": 5,
         "resolution": "720p",
     }
@@ -100,7 +101,7 @@ def test_submit_imagem_usa_modelo_de_imagem_e_movimento() -> None:
 
     assert seen["url"] == "https://queue.fal.run/fal-ai/kling-video/v3/pro/image-to-video"
     assert seen["body"]["image_url"] == "https://exemplo.test/foto.png"
-    assert seen["body"]["prompt"] == "Movimento: zoom lento"
+    assert seen["body"]["prompt"] == f"Movimento: zoom lento. {INSTRUCAO_PT_BR}"
 
 
 def test_animar_foto_usa_o_mesmo_modelo_de_imagem() -> None:

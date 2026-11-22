@@ -4,6 +4,8 @@
 /// precisam conhecer `built_value` nem o contrato HTTP.
 library;
 
+import '../../l10n/pt_br.dart';
+
 /// Tipo de criação iniciada pelo usuário (usado para mensagens e custos).
 enum GenerationKind { image, video, animatePhoto }
 
@@ -112,14 +114,10 @@ class GenerationItem {
     return words.length < text.length ? '$words…' : words;
   }
 
-  String get createdLabel {
-    final diff = DateTime.now().difference(createdAt);
-    if (diff.inMinutes < 1) return 'Agora';
-    if (diff.inHours < 1) return '${diff.inMinutes} min';
-    if (diff.inDays < 1) return '${diff.inHours} h';
-    if (diff.inDays == 1) return 'Ontem';
-    return '${diff.inDays} dias';
-  }
+  String get createdLabel => formatarRelativo(createdAt);
+
+  /// Data completa em pt-BR, útil para dicas e leitores de tela.
+  String get createdFullLabel => formatarDataHora(createdAt);
 
   String get subtitle => '$createdLabel · $costCredits créditos';
 }

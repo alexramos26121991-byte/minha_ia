@@ -15,6 +15,7 @@ from app import __version__
 from app.admin.router import router as admin_router
 from app.auth.router import router as auth_router
 from app.core.config import settings
+from app.core.errors import instalar_handlers
 from app.core.health import check_dependencies, overall_status
 from app.core.observability import setup_observability
 from app.core.schemas import HealthOut
@@ -28,6 +29,19 @@ from app.users.router import router as users_router
 logger = logging.getLogger(__name__)
 
 setup_observability()
+
+DESCRICOES_RESPOSTA_PT_BR = {
+    "Successful Response": "Resposta bem-sucedida.",
+    "Validation Error": "Requisição inválida (validação falhou).",
+    "Bad Request": "Requisição inválida.",
+    "Unauthorized": "Não autenticado.",
+    "Forbidden": "Acesso negado.",
+    "Not Found": "Recurso não encontrado.",
+    "Conflict": "Conflito com o estado atual.",
+    "Method Not Allowed": "Método não permitido.",
+    "Internal Server Error": "Erro interno do servidor.",
+    "Service Unavailable": "Serviço temporariamente indisponível.",
+}
 
 TAGS = [
     {"name": "system", "description": "Saúde do serviço."},
@@ -52,6 +66,8 @@ app = FastAPI(
     ),
     openapi_tags=TAGS,
 )
+
+instalar_handlers(app)
 
 
 @app.get(
@@ -128,6 +144,10 @@ def _custom_openapi() -> dict:
             responses = operation.setdefault("responses", {})
             if not any(code.startswith("4") for code in responses):
                 responses["400"] = {"description": "Requisição inválida."}
+            for resposta in responses.values():
+                descricao = resposta.get("description")
+                if descricao in DESCRICOES_RESPOSTA_PT_BR:
+                    resposta["description"] = DESCRICOES_RESPOSTA_PT_BR[descricao]
 
     app.openapi_schema = schema
     return schema

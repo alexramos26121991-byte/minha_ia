@@ -1,6 +1,9 @@
-import 'package:material_ui/material_ui.dart';
+import 'package:cupertino_ui/cupertino_ui.dart' show GlobalCupertinoLocalizations;
+import 'package:flutter_localizations/flutter_localizations.dart' show GlobalWidgetsLocalizations;
 import 'package:go_router/go_router.dart';
+import 'package:material_ui/material_ui.dart';
 
+import 'l10n/pt_br.dart';
 import 'routes/app_router.dart';
 import 'theme/app_theme.dart';
 
@@ -16,6 +19,13 @@ class MinhaIaApp extends StatelessWidget {
     return MaterialApp.router(
       title: 'MINHA IA',
       debugShowCheckedModeBanner: false,
+      locale: ptBrLocale,
+      supportedLocales: const [ptBrLocale],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       theme: AppTheme.dark,
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.dark,

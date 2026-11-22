@@ -15,6 +15,7 @@ from urllib.parse import urlparse
 
 import httpx
 
+from app.generation.providers.language import compor_prompt_video
 from app.generation.providers.video_base import (
     GeneratedVideo,
     VideoJob,
@@ -99,10 +100,7 @@ class FalVideoProvider(VideoProvider):
 
     @staticmethod
     def _compose_prompt(prompt: str | None, motion: str | None) -> str:
-        base = (prompt or "").strip()
-        if motion and motion.strip():
-            return f"{base}. Movimento: {motion.strip()}" if base else f"Movimento: {motion.strip()}"
-        return base
+        return compor_prompt_video(prompt, motion)
 
     def _request_json(
         self,

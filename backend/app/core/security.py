@@ -27,7 +27,9 @@ logger = logging.getLogger(__name__)
 bearer_scheme = HTTPBearer(
     scheme_name="FirebaseBearer",
     description="ID token do Firebase no cabeçalho Authorization: Bearer <token>.",
-    auto_error=True,
+    # O missing-credential é tratado em get_current_identity para responder 401
+    # com mensagem em pt-BR, em vez do 403 padrão em inglês do HTTPBearer.
+    auto_error=False,
 )
 
 
@@ -155,21 +157,30 @@ def set_verifier(verifier: TokenVerifier | None) -> None:
 
 
 def get_current_identity(
-    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     verifier: TokenVerifier = Depends(get_verifier),
 ) -> VerifiedIdentity:
     """Converte o Bearer em identidade validada ou responde 401."""
+    if credentials is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Credencial de autenticação ausente. Envie Authorization: Bearer <token>.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     try:
         return verifier.verify(credentials.credentials)
     except AuthError as exc:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail=str(exc)
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(exc),
+            headers={"WWW-Authenticate": "Bearer"},
         ) from exc
     except Exception as exc:  # configuração/provedor indisponível
         logger.exception("Falha inesperada ao verificar token")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Não foi possível validar a credencial.",
+            headers={"WWW-Authenticate": "Bearer"},
         ) from exc
 
 

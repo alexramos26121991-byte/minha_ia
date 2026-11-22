@@ -17,7 +17,7 @@ paths:
       operationId: health
       responses:
         '200':
-          description: Successful Response
+          description: Resposta bem-sucedida.
           content:
             application/json:
               schema:
@@ -41,13 +41,13 @@ paths:
         required: true
       responses:
         '200':
-          description: Successful Response
+          description: Resposta bem-sucedida.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SessionOut'
         '422':
-          description: Validation Error
+          description: Requisição inválida (validação falhou).
           content:
             application/json:
               schema:
@@ -62,7 +62,7 @@ paths:
       operationId: getCurrentUser
       responses:
         '200':
-          description: Successful Response
+          description: Resposta bem-sucedida.
           content:
             application/json:
               schema:
@@ -84,13 +84,13 @@ paths:
         required: true
       responses:
         '200':
-          description: Successful Response
+          description: Resposta bem-sucedida.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserOut'
         '422':
-          description: Validation Error
+          description: Requisição inválida (validação falhou).
           content:
             application/json:
               schema:
@@ -106,7 +106,7 @@ paths:
       operationId: listPlans
       responses:
         '200':
-          description: Successful Response
+          description: Resposta bem-sucedida.
           content:
             application/json:
               schema:
@@ -125,7 +125,7 @@ paths:
       operationId: getCreditBalance
       responses:
         '200':
-          description: Successful Response
+          description: Resposta bem-sucedida.
           content:
             application/json:
               schema:
@@ -162,7 +162,7 @@ paths:
           title: Offset
       responses:
         '200':
-          description: Successful Response
+          description: Resposta bem-sucedida.
           content:
             application/json:
               schema:
@@ -171,7 +171,7 @@ paths:
                   $ref: '#/components/schemas/LedgerEntryOut'
                 title: Response Listcreditledger
         '422':
-          description: Validation Error
+          description: Requisição inválida (validação falhou).
           content:
             application/json:
               schema:
@@ -190,7 +190,7 @@ paths:
       operationId: listCreditCosts
       responses:
         '200':
-          description: Successful Response
+          description: Resposta bem-sucedida.
           content:
             application/json:
               schema:
@@ -216,13 +216,13 @@ paths:
         required: true
       responses:
         '201':
-          description: Successful Response
+          description: Resposta bem-sucedida.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenerationOut'
         '422':
-          description: Validation Error
+          description: Requisição inválida (validação falhou).
           content:
             application/json:
               schema:
@@ -243,13 +243,13 @@ paths:
         required: true
       responses:
         '202':
-          description: Successful Response
+          description: Resposta bem-sucedida.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenerationOut'
         '422':
-          description: Validation Error
+          description: Requisição inválida (validação falhou).
           content:
             application/json:
               schema:
@@ -270,13 +270,13 @@ paths:
         required: true
       responses:
         '202':
-          description: Successful Response
+          description: Resposta bem-sucedida.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenerationOut'
         '422':
-          description: Validation Error
+          description: Requisição inválida (validação falhou).
           content:
             application/json:
               schema:
@@ -297,13 +297,13 @@ paths:
         required: true
       responses:
         '201':
-          description: Successful Response
+          description: Resposta bem-sucedida.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/UploadOut'
         '422':
-          description: Validation Error
+          description: Requisição inválida (validação falhou).
           content:
             application/json:
               schema:
@@ -352,7 +352,7 @@ paths:
         description: Filtra a galeria por tipo de geração.
       responses:
         '200':
-          description: Successful Response
+          description: Resposta bem-sucedida.
           content:
             application/json:
               schema:
@@ -361,7 +361,7 @@ paths:
                   $ref: '#/components/schemas/GenerationOut'
                 title: Response Listgenerations
         '422':
-          description: Validation Error
+          description: Requisição inválida (validação falhou).
           content:
             application/json:
               schema:
@@ -383,13 +383,13 @@ paths:
           title: Generation Id
       responses:
         '200':
-          description: Successful Response
+          description: Resposta bem-sucedida.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenerationOut'
         '422':
-          description: Validation Error
+          description: Requisição inválida (validação falhou).
           content:
             application/json:
               schema:
@@ -410,9 +410,9 @@ paths:
           title: Generation Id
       responses:
         '204':
-          description: Successful Response
+          description: Resposta bem-sucedida.
         '422':
-          description: Validation Error
+          description: Requisição inválida (validação falhou).
           content:
             application/json:
               schema:
@@ -431,13 +431,13 @@ paths:
         required: true
       responses:
         '200':
-          description: Successful Response
+          description: Resposta bem-sucedida.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/CheckoutOut'
         '422':
-          description: Validation Error
+          description: Requisição inválida (validação falhou).
           content:
             application/json:
               schema:
@@ -462,7 +462,7 @@ paths:
           title: X-Signature
       responses:
         '200':
-          description: Successful Response
+          description: Resposta bem-sucedida.
           content:
             application/json:
               schema:
@@ -471,7 +471,7 @@ paths:
                   type: string
                 title: Response Handlepaymentwebhook
         '422':
-          description: Validation Error
+          description: Requisição inválida (validação falhou).
           content:
             application/json:
               schema:
@@ -485,7 +485,7 @@ paths:
       operationId: listPayments
       responses:
         '200':
-          description: Successful Response
+          description: Resposta bem-sucedida.
           content:
             application/json:
               schema:
@@ -505,7 +505,7 @@ paths:
       operationId: adminListUsers
       responses:
         '200':
-          description: Successful Response
+          description: Resposta bem-sucedida.
           content:
             application/json:
               schema:
@@ -525,7 +525,7 @@ paths:
       operationId: adminListGenerations
       responses:
         '200':
-          description: Successful Response
+          description: Resposta bem-sucedida.
           content:
             application/json:
               schema:
@@ -545,7 +545,7 @@ paths:
       operationId: adminListPayments
       responses:
         '200':
-          description: Successful Response
+          description: Resposta bem-sucedida.
           content:
             application/json:
               schema:
@@ -580,13 +580,13 @@ paths:
               $ref: '#/components/schemas/CreditAdjustmentIn'
       responses:
         '200':
-          description: Successful Response
+          description: Resposta bem-sucedida.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/BalanceOut'
         '422':
-          description: Validation Error
+          description: Requisição inválida (validação falhou).
           content:
             application/json:
               schema:
@@ -599,7 +599,7 @@ paths:
       operationId: adminListCosts
       responses:
         '200':
-          description: Successful Response
+          description: Resposta bem-sucedida.
           content:
             application/json:
               schema:

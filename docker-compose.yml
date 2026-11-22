@@ -6,6 +6,10 @@ name: minha-ia
 # obrigatórios e APP_ENV=production).
 
 x-backend-env: &backend-env
+  # Locale e fuso do produto: texto/formatos pt-BR e hora de São Paulo.
+  LANG: ${LANG:-C.UTF-8}
+  LC_ALL: ${LC_ALL:-C.UTF-8}
+  TZ: ${TZ:-America/Sao_Paulo}
   APP_ENV: ${APP_ENV:-development}
   API_BASE_URL: ${API_BASE_URL:-http://localhost:8000}
   POSTGRES_HOST: postgres
@@ -61,6 +65,9 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
+      LANG: ${LANG:-C.UTF-8}
+      LC_ALL: ${LC_ALL:-C.UTF-8}
+      TZ: ${TZ:-America/Sao_Paulo}
       POSTGRES_DB: ${POSTGRES_DB:-minha_ia}
       POSTGRES_USER: ${POSTGRES_USER:-minha_ia}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-trocar}
@@ -76,6 +83,10 @@ services:
     image: redis:7-alpine
     restart: unless-stopped
     command: ["redis-server", "--appendonly", "yes"]
+    environment:
+      LANG: ${LANG:-C.UTF-8}
+      LC_ALL: ${LC_ALL:-C.UTF-8}
+      TZ: ${TZ:-America/Sao_Paulo}
     volumes:
       - redisdata:/data
     healthcheck:
