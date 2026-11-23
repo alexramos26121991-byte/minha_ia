@@ -1,0 +1,5 @@
+# Artefatos gerados pelo Blender (binarios grandes) — nao versionar.
+*.blend
+*.blend1
+*.mp4
+*.png
